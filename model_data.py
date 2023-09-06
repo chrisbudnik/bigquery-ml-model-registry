@@ -19,6 +19,11 @@ class ModelData(Config):
             raise NameError(f"Model: {self.model_id} was not found in {self.dataset} dataset.")
         
         self.model = model
+
+    @property
+    def metadata(self):
+        # add not implemented error for hyperparam tuning models
+        return self.model.training_runs[0]
         
     def fetch_feature_importance(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns feature importance data."""
@@ -42,8 +47,18 @@ class ModelData(Config):
         
     def fetch_hyperparams(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns hyperparameters."""
-        # ... logic for fetching hyperparameters
-        return []
+        
+        def value_type_classifier(value):
+            return isinstance(value, str) or isinstance(value, list)
+
+        hyperparams = self.metadata["trainingOptions"]
+        hyperparams_data = [{"name": key,
+                            "value_string": str(value) if value_type_classifier(value)  else None,
+                            "value_float": float(value) if not value_type_classifier(value) else None}
+                            for key, value in hyperparams.items()]
+        
+        return [item for item in hyperparams_data if item['name'] != 'inputLabelColumns']
+
 
     def fetch_eval_metrics(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns evaluation metrics."""
