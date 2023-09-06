@@ -6,9 +6,9 @@ from config import Config
 class ModelData(Config):
     """Responsible for fetching and storing model-related metadata."""
     
-    def __init__(self, project: str, dataset: str, model_id: str):
-        self.project = project
-        self.dataset = dataset
+    def __init__(self, project_id: str, dataset_id: str, model_id: str):
+        self.project_id = project_id
+        self.dataset_id = dataset_id
         self.model_id = model_id
 
         try:
@@ -20,11 +20,25 @@ class ModelData(Config):
         
         self.model = model
         
-        
     def fetch_feature_importance(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns feature importance data."""
-        # ... logic for fetching feature importance
-        return []
+
+        feature_importance_sql = f"""
+            SELECT *
+            FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
+        """
+        feature_importance_results = self.client.query(feature_importance_sql).result()
+
+        # Store the feature importance in a list of dictionaries
+        features = []
+        for row in feature_importance_results:
+            features.append({
+                "name": row.feature,
+                "importance_weight": row.importance_weight,
+                "importance_gain": row.importance_gain,
+                "importance_cover": row.importance_cover
+                })
+        return features
         
     def fetch_hyperparams(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns hyperparameters."""
