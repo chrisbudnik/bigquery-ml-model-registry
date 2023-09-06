@@ -15,10 +15,14 @@ class ModelData(Config):
             model_ref = bigquery.Model(f"{self.project_id}.{self.dataset_id}.{model_id}")
             model = self.client.get_model(model_ref)
 
+        # add proper exception
         except Exception:
             raise NameError(f"Model: {self.model_id} was not found in {self.dataset} dataset.")
         
         self.model = model
+        self.created = self.model.created.strftime('%Y-%m-%d')
+        self.model_type = model.model_type
+
 
     @property
     def metadata(self):
@@ -26,18 +30,19 @@ class ModelData(Config):
         return self.model.training_runs[0]
     
     def fetch_target(self) -> str:
-        return 
+        """Fetches and returns model target variable"""
+        return self.metadata["trainingOptions"]["inputLabelColumns"][0]
         
     def fetch_feature_importance(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns feature importance data."""
 
+        # add check if model type is correct
         feature_importance_sql = f"""
             SELECT *
             FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
         """
         feature_importance_results = self.client.query(feature_importance_sql).result()
-
-        # Store the feature importance in a list of dictionaries
+    
         features = []
         for row in feature_importance_results:
             features.append({
