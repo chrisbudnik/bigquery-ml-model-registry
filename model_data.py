@@ -10,6 +10,15 @@ class ModelData(Config):
         self.project = project
         self.dataset = dataset
         self.model_id = model_id
+
+        try:
+            model_ref = bigquery.Model(f"{self.project_id}.{self.dataset_id}.{model_id}")
+            model = self.client.get_model(model_ref)
+
+        except Exception:
+            raise NameError(f"Model: {self.model_id} was not found in {self.dataset} dataset.")
+        
+        self.model = model
         
         
     def fetch_feature_importance(self) -> List[Dict[str, Union[str, float]]]:
