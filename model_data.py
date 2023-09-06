@@ -24,6 +24,9 @@ class ModelData(Config):
     def metadata(self):
         # add not implemented error for hyperparam tuning models
         return self.model.training_runs[0]
+    
+    def fetch_target(self) -> str:
+        return 
         
     def fetch_feature_importance(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns feature importance data."""
@@ -47,8 +50,8 @@ class ModelData(Config):
         
     def fetch_hyperparams(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns hyperparameters."""
-        
-        def value_type_classifier(value):
+
+        def value_type_classifier(value) -> bool:
             return isinstance(value, str) or isinstance(value, list)
 
         hyperparams = self.metadata["trainingOptions"]
@@ -60,13 +63,17 @@ class ModelData(Config):
         return [item for item in hyperparams_data if item['name'] != 'inputLabelColumns']
 
 
-    def fetch_eval_metrics(self) -> List[Dict[str, Union[str, float]]]:
+    def fetch_eval_metrics(self) -> List[Dict[str, float]]:
         """Fetches and returns evaluation metrics."""
-        # ... logic for fetching evaluation metrics
-        return []
 
-    def fetch_training_info(self) -> List[Dict[str, Union[str, float]]]:
+        eval_metrics = self.metadata["evaluationMetrics"]['regressionMetrics']
+        return [{"name": key, "value": float(value)} for key, value in eval_metrics.items()]
+        
+
+    def fetch_training_info(self) -> List[Dict[str, float]]:
         """Fetches and returns training info."""
-        # ... logic for fetching training information
-        return []
+        
+        training_info = self.metadata["results"][0]
+        return [{"name": key, "value": float(value)} for key, value in training_info.items()]
+
 
