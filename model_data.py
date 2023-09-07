@@ -24,8 +24,12 @@ class ModelData(Config):
 
     @property
     def metadata(self) -> Dict:
-        # add not implemented error for hyperparam tuning models
-        return self.model.training_runs[0]
+        """Access model metadata, training info, features and eval metrics"""
+        
+        training_runs = self.model.training_runs[0]
+        if training_runs.get("evaluationMetrics", True):
+            raise NotImplementedError("Hyperparameter tunning models are not currently supported.")
+        return training_runs
     
     def fetch_target(self) -> str:
         """Fetches and returns model target variable"""
@@ -78,8 +82,16 @@ class ModelData(Config):
 
     def fetch_eval_metrics(self) -> List[Dict[str, float]]:
         """Fetches and returns evaluation metrics."""
+        model_class = self.model_type.split("_")[-1]
 
-        eval_metrics = self.metadata["evaluationMetrics"]['regressionMetrics']
+        if model_class not in ("REGRESSOR", "CLASSIFIER"):
+            raise NotImplementedError("Evaluation metrics are only supported for REGRESSOR and CLASSIFIER models")
+        
+        if model_class == "REGRESSOR":
+            eval_metrics = self.metadata["evaluationMetrics"]['regressionMetrics']
+        else:
+            eval_metrics = self.metadata["evaluationMetrics"]['classificationMetrics']
+            
         return [{"name": key, "value": float(value)} for key, value in eval_metrics.items()]
         
 
