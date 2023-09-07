@@ -17,7 +17,7 @@ class ModelData(Config):
 
         # add proper exception
         except Exception:
-            raise NameError(f"Model: {self.model_id} was not found in {self.dataset} dataset.")
+            raise NameError(f"Model: {self.model_id} was not found in {self.dataset_id} dataset.")
         
         self.model = model
         self.created = self.model.created.strftime('%Y-%m-%d')
@@ -37,6 +37,12 @@ class ModelData(Config):
         """Fetches and returns feature importance data."""
 
         # add check if model type is correct
+        TREE_MODELS = ("BOOSTED_TREE_REGRESSOR", "BOOSTED_TREE_CLASSIFIER", 
+                       "RANDOM_FOREST_REGRESSOR", "RANDOM_FOREST_CLASSIFIER")
+        
+        if self.model_type not in TREE_MODELS:
+            raise NotImplementedError(f"Fetching feature importance is not supported for {self.model_type} model type.")
+
         feature_importance_sql = f"""
             SELECT *
             FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
@@ -80,5 +86,3 @@ class ModelData(Config):
         
         training_info = self.metadata["results"][0]
         return [{"name": key, "value": float(value)} for key, value in training_info.items()]
-
-
