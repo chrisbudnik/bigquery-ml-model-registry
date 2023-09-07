@@ -1,12 +1,13 @@
 from typing import List, Dict, Union, Optional
 from google.cloud import bigquery
+from google.api_core.exceptions import NotFound
 from config import Config
 
 
 class ModelData(Config):
     """Responsible for fetching and storing model-related metadata."""
     
-    def __init__(self, project_id: str, dataset_id: str, model_id: str):
+    def __init__(self, project_id: str, dataset_id: str, model_id: str) -> None:
         self.project_id = project_id
         self.dataset_id = dataset_id
         self.model_id = model_id
@@ -14,18 +15,15 @@ class ModelData(Config):
         try:
             model_ref = bigquery.Model(f"{self.project_id}.{self.dataset_id}.{model_id}")
             model = self.client.get_model(model_ref)
-
-        # add proper exception
-        except Exception:
+        except NotFound:
             raise NameError(f"Model: {self.model_id} was not found in {self.dataset_id} dataset.")
         
         self.model = model
         self.created = self.model.created.strftime('%Y-%m-%d')
         self.model_type = model.model_type
 
-
     @property
-    def metadata(self):
+    def metadata(self) -> Dict:
         # add not implemented error for hyperparam tuning models
         return self.model.training_runs[0]
     
@@ -34,12 +32,12 @@ class ModelData(Config):
         target = self.metadata["trainingOptions"]["inputLabelColumns"]
         if len(target) > 1:
             raise NotImplementedError("Multiple target variables are not supported")
+        
         return target[0]
         
     def fetch_feature_importance(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns feature importance data."""
 
-        # add check if model type is correct
         TREE_MODELS = ("BOOSTED_TREE_REGRESSOR", "BOOSTED_TREE_CLASSIFIER", 
                        "RANDOM_FOREST_REGRESSOR", "RANDOM_FOREST_CLASSIFIER")
         
@@ -66,6 +64,7 @@ class ModelData(Config):
         """Fetches and returns hyperparameters."""
 
         def value_type_classifier(value) -> bool:
+            """Helper function that allows distinction between hyperparameter value types."""
             return isinstance(value, str) or isinstance(value, list)
 
         hyperparams = self.metadata["trainingOptions"]
