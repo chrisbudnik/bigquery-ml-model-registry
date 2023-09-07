@@ -11,7 +11,7 @@ class Config:
             path_to_keys = os.environ.get("SERVICE_ACCOUNT_CREDENTIALS")
 
             if path_to_keys is None:
-                raise EnvironmentError("The GSERVICE_ACCOUNT_CREDENTIALS environment variable is not set.")
+                raise EnvironmentError("The SERVICE_ACCOUNT_CREDENTIALS environment variable is not set.")
             Config._client = bigquery.Client.from_service_account_json(path_to_keys)
 
         return Config._client
