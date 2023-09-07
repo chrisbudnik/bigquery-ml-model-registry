@@ -44,7 +44,7 @@ class ModelRegistry(Config):
                 bigquery.SchemaField("value_float", "FLOAT64")
             ))
         ]
-        
+
         # Create table if it does not exist
         try:
             self.client.get_table(self.full_table_id)
@@ -58,7 +58,7 @@ class ModelRegistry(Config):
         
         rows_to_insert = [{
             "model_name": model_data.model_id,
-            "created": model_data.created.strftime('%Y-%m-%d'),
+            "created": model_data.created,
             "type": model_data.model_type,
             "features": model_data.fetch_feature_importance(),
             "eval": model_data.fetch_eval_metrics(),
