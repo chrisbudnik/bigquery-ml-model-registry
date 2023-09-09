@@ -38,6 +38,10 @@ class ModelData(Config):
             raise NotImplementedError("Multiple target variables are not supported")
         
         return target[0]
+    
+    def fetch_feature_names(self):
+        """Fetches and returns feature names."""
+        pass
         
     def fetch_feature_importance(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns feature importance data."""
