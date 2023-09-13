@@ -2,7 +2,7 @@ from enum import Enum
 from google.cloud import bigquery
 
 
-class Scheams(Enum):
+class RegistrySchema(Enum):
     general_registry = [
             bigquery.SchemaField("model_name", "STRING"),
             bigquery.SchemaField("created", "DATE"),
