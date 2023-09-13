@@ -35,13 +35,13 @@ class ModelData(Config):
         """Fetches and returns model target variable"""
         target = self.metadata["trainingOptions"]["inputLabelColumns"]
         if len(target) > 1:
-            raise NotImplementedError("Multiple target variables are not supported")
+            raise NotImplementedError("Multiple target variables are not supported.")
         
         return target[0]
     
     def fetch_feature_names(self):
         """Fetches and returns feature names."""
-        pass
+        return [{"name": feature.name} for feature in self.model.feature_columns]
         
     def fetch_feature_importance(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns feature importance data."""
