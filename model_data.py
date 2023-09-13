@@ -27,7 +27,7 @@ class ModelData(Config):
         """Access model metadata, training info, features and eval metrics"""
         
         training_runs = self.model.training_runs[0]
-        if training_runs.get("evaluationMetrics", True):
+        if training_runs.get("trainingOptions", {}).get("numTrials", 0):
             raise NotImplementedError("Hyperparameter tunning models are not currently supported.")
         return training_runs
     
