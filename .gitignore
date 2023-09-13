@@ -1,3 +1,4 @@
 code-tests.py
 tests.py
 tests.ipynb
+__pycache__/
