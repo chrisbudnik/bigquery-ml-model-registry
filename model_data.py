@@ -73,12 +73,13 @@ class ModelData(Config):
 
         def value_type_classifier(value) -> bool:
             """Helper function that allows distinction between hyperparameter value types."""
-            return isinstance(value, str) or isinstance(value, list)
+            STRING_HYPERPARAMS = ["dataSplitMethod", "treeMethod", "categoryEncodingMethod"]
+            return value in STRING_HYPERPARAMS
 
         hyperparams = self.metadata["trainingOptions"]
         hyperparams_data = [{"name": key,
-                            "value_string": str(value) if value_type_classifier(value)  else None,
-                            "value_float": float(value) if not value_type_classifier(value) else None}
+                            "value_string": str(value) if value_type_classifier(key)  else None,
+                            "value_float": float(value) if not value_type_classifier(key) else None}
                             for key, value in hyperparams.items()]
         
         return [item for item in hyperparams_data if item['name'] != 'inputLabelColumns']
