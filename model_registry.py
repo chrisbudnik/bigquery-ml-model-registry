@@ -1,7 +1,8 @@
-from typing import List, Dict, Union, Optional
+from typing import List, Dict, Union, Optional, Literal
 from google.cloud import bigquery
 from config import Config
 from model_data import ModelData
+from schemas import RegistrySchema
 
 
 class ModelRegistry(Config):
@@ -13,44 +14,14 @@ class ModelRegistry(Config):
         self.table_id = table_id
         self.full_table_id = f"{project_id}.{dataset_id}.{table_id}"
     
-    def init_table(self):
+    def init_table(self, schema: RegistrySchema, replace: bool = False) -> None:
         """Initialize or validate the registry table."""
-
-        schema = [
-            bigquery.SchemaField("model_name", "STRING"),
-            bigquery.SchemaField("created", "DATE"),
-            bigquery.SchemaField("type", "STRING"),
-
-            bigquery.SchemaField("features", "RECORD", mode="REPEATED", fields=(
-                bigquery.SchemaField("name", "STRING"),
-                bigquery.SchemaField("importance_weight", "FLOAT64"),
-                bigquery.SchemaField("importance_gain", "FLOAT64"),
-                bigquery.SchemaField("importance_cover", "FLOAT64")
-                )),
-
-            bigquery.SchemaField("eval", "RECORD", mode="REPEATED", fields=(
-                bigquery.SchemaField("name", "STRING"),
-                bigquery.SchemaField("value", "FLOAT64"),
-            )),
-
-            bigquery.SchemaField("training", "RECORD", mode="REPEATED", fields=(
-                bigquery.SchemaField("name", "STRING"),
-                bigquery.SchemaField("value", "FLOAT64"),
-            )),
-
-            bigquery.SchemaField("hyperparams", "RECORD", mode="REPEATED", fields=(
-                bigquery.SchemaField("name", "STRING"),
-                bigquery.SchemaField("value_string", "STRING"),
-                bigquery.SchemaField("value_float", "FLOAT64")
-            ))
-        ]
-
-        # Create table if it does not exist
+        # add replace param
         try:
             self.client.get_table(self.full_table_id)
             print(f"Table: {self.full_table_id} already exists!")
         except:
-            self.client.create_table(bigquery.Table(self.full_table_id, schema=schema))
+            self.client.create_table(bigquery.Table(self.full_table_id, schema=schema.value))
             print(f"Table: {self.full_table_id} successfully created.")
 
     def add_model(self, model_data: ModelData) -> None:
