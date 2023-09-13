@@ -1,10 +1,12 @@
 from model_registry import ModelRegistry
 from model_data import ModelData
 
+from pprint import pprint
+
 # Example usage
 if __name__ == "__main__":
-    project_id = "your_project_id"
-    dataset_id = "dataset_id"
+    project_id = "chris-sandbox-2023"
+    dataset_id = "housing"
     table_id = "model_registry"
 
     # Create model registry table
@@ -12,21 +14,21 @@ if __name__ == "__main__":
     registry.init_table()
     
     # Add a model to the registry
-    model_id = "model_name_1"
+    model_id = "model_forest_03"
     model = ModelData(project_id, dataset_id, model_id)
 
     # Inspect metadata
-    print(model.metadata)
+    pprint(model.metadata)
 
     # Fetch hyperparameters
     hyperparams = model.fetch_hyperparams()
-    print(hyperparams)
+    pprint(hyperparams)
 
     # Fetch feature importance - only tree models
     importances = model.fetch_feature_importance()
-    print(importances)
+    pprint(importances)
 
     # Adding model to registry (all metadata)
-    registry.add_model(model_id)
+    #registry.add_model(model)
 
     
