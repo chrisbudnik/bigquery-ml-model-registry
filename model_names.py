@@ -1,6 +1,6 @@
 from enum import Enum
 
-class ModelNames(Enum):
+class ModelNames():
     # Classification Models
     LOGISTIC_REG = "LOGISTIC_REG"
     AUTOML_CLASSIFIER = "AUTOML_CLASSIFIER"
@@ -30,33 +30,33 @@ class ModelNames(Enum):
     AUTOENCODER = "AUTOENCODER"
 
     # Deep Neural Networks (DNN) Models
-    DNN_MODELS = (
+    DNN_MODELS = {
         "DNN_CLASSIFIER",
         "DNN_REGRESSOR",
         "DNN_LINEAR_COMBINED_CLASSIFIER",
         "DNN_LINEAR_COMBINED_REGRESSOR"
-    )
+    }
 
     # Tree-based Models
-    TREE_MODELS = (
+    TREE_MODELS = {
         "BOOSTED_TREE_CLASSIFIER",
         "BOOSTED_TREE_REGRESSOR",
         "RANDOM_FOREST_CLASSIFIER",
         "RANDOM_FOREST_REGRESSOR"
-    )
+    }
 
     # Classification Models
-    CLASSIFICATION_MODELS = (
+    CLASSIFICATION_MODELS = {
         "LOGISTIC_REG",
         "AUTOML_CLASSIFIER",
         "BOOSTED_TREE_CLASSIFIER",
         "RANDOM_FOREST_CLASSIFIER",
         "DNN_CLASSIFIER",
         "DNN_LINEAR_COMBINED_CLASSIFIER"
-    )
+    }
 
     # Regression Models
-    REGRESSION_MODELS = (
+    REGRESSION_MODELS = {
         "LINEAR_REG",
         "AUTOML_REGRESSOR",
         "BOOSTED_TREE_REGRESSOR",
@@ -65,9 +65,9 @@ class ModelNames(Enum):
         "DNN_LINEAR_COMBINED_REGRESSOR",
         "ARIMA_PLUS",
         "ARIMA_PLUS_XREG"
-    )
+    }
 
-    SUPPORTED_MODELS = (
+    SUPPORTED_MODELS = {
         "LINEAR_REG",
         "AUTOML_REGRESSOR",
         "BOOSTED_TREE_REGRESSOR",
@@ -80,4 +80,5 @@ class ModelNames(Enum):
         "RANDOM_FOREST_CLASSIFIER",
         "DNN_CLASSIFIER",
         "DNN_LINEAR_COMBINED_CLASSIFIER"
-    )
+    }
+
