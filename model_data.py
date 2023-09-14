@@ -26,6 +26,9 @@ class ModelData(Config):
         self.created = self.model.created.strftime('%Y-%m-%d')
         self.model_type = model.model_type
 
+        if self.model_type not in ModelNames.SUPPORTED_MODELS:
+            raise NotImplementedError(f"Model type: {self.model_type} is not supported.")
+
     @property
     def metadata(self) -> Dict:
         """Access model metadata, training info, features and eval metrics"""
@@ -34,6 +37,7 @@ class ModelData(Config):
     
     @property
     def is_tunning(self):
+        """Provide information if hyperparameter-tunning was included."""
         return int(self.metadata.get("trainingOptions", {}).get("numTrials", 0)) > 0
     
     def fetch_target(self) -> str:
@@ -76,12 +80,15 @@ class ModelData(Config):
 
     def fetch_eval_metrics(self) -> List[Dict[str, float]]:
         """Fetches and returns evaluation metrics."""
-        model_class = self.model_type.split("_")[-1]
 
-        if model_class not in ("REGRESSOR", "CLASSIFIER"):
+        if self.is_tunning:
+            raise ValueError("""BigQuery does not provide evaluation metrics for hyperparameter-tunning models. 
+                             They are accessed in fetch_trial_info() method""")
+
+        if self.model_type not in ModelNames.REGRESSION_MODELS | ModelNames.CLASSIFICATION_MODELS:
             raise NotImplementedError("Evaluation metrics are only supported for REGRESSOR and CLASSIFIER models")
         
-        if model_class == "REGRESSOR":
+        if self.model_type in ModelNames.REGRESSION_MODELS:
             eval_metrics = self.metadata["evaluationMetrics"]['regressionMetrics']
         else:
             eval_metrics = self.metadata["evaluationMetrics"]['classificationMetrics']
