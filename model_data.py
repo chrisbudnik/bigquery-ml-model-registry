@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Optional
+from typing import List, Dict, Union, Optional, Any
 from google.cloud import bigquery
 from google.api_core.exceptions import NotFound
 from config import Config
@@ -9,7 +9,8 @@ import pandas as pd
 class ModelData(Config):
     """Responsible for fetching and storing model-related metadata."""
 
-    STRING_HYPERPARAMS = ["dataSplitMethod", "treeMethod", "categoryEncodingMethod"]
+    STRING_HYPERPARAMS = ["dataSplitMethod", "treeMethod", "categoryEncodingMethod", "inputLabelColumns",
+                          "lossType", "optimizationStrategy", "optimizer", "activationFn"]
     
     def __init__(self, project_id: str, dataset_id: str, model_id: str) -> None:
         self.project_id = project_id
@@ -30,7 +31,7 @@ class ModelData(Config):
             raise NotImplementedError(f"Model type: {self.model_type} is not supported.")
 
     @property
-    def metadata(self) -> Dict:
+    def metadata(self) -> Dict[str, Any]:
         """Access model metadata, training info, features and eval metrics"""
         training_runs = self.model.training_runs[0]
         return training_runs
@@ -70,6 +71,7 @@ class ModelData(Config):
         """Fetches and returns hyperparameters."""
 
         hyperparams = self.metadata["trainingOptions"]
+        hyperparams.pop('inputLabelColumns', None)
         hyperparams_data = [{"name": key,
                             "value_string": str(value) if key in self.STRING_HYPERPARAMS  else None,
                             "value_float": float(value) if key not in self.STRING_HYPERPARAMS else None}
@@ -83,7 +85,7 @@ class ModelData(Config):
 
         if self.is_tunning:
             raise ValueError("""BigQuery does not provide evaluation metrics for hyperparameter-tunning models. 
-                             They are accessed in fetch_trial_info() method""")
+                             They can be accessed with fetch_trial_info() method""")
 
         if self.model_type not in ModelNames.REGRESSION_MODELS | ModelNames.CLASSIFICATION_MODELS:
             raise NotImplementedError("Evaluation metrics are only supported for REGRESSOR and CLASSIFIER models")
@@ -103,6 +105,7 @@ class ModelData(Config):
         return [{"name": key, "value": float(value)} for key, value in training_info.items()]
     
     def fetch_trial_info(self) -> List[Dict[str, float]]:
+        """Fetches and returns trial info based on ML.TRIAL_INFO() function."""
         
         if not self.is_tunning:
             raise ValueError(f"Fetching trial info is not supported for non hyperparameter-tunning models.")
@@ -119,7 +122,7 @@ class ModelData(Config):
         df_melted = pd.melt(df, id_vars=['trial_id'], value_vars=cols_to_melt, 
                             var_name='name', value_name='value')
         
-        # string and float columns must be in separate columns for BigQuery export
+        # strings and floats must be in separate columns for BigQuery export
         df_melted["value_string"] = df_melted.value if isinstance(df_melted.value, str) else None
         df_melted['value_float'] = df_melted['value'].apply(lambda x: float(x) if x is not None and not isinstance(x, str) else None)
 
