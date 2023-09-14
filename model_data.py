@@ -3,6 +3,7 @@ from google.cloud import bigquery
 from google.api_core.exceptions import NotFound
 from config import Config
 from model_names import ModelNames
+import pandas as pd
 
 
 class ModelData(Config):
@@ -33,7 +34,7 @@ class ModelData(Config):
     
     @property
     def is_tunning(self):
-        return self.metadata.get("trainingOptions", {}).get("numTrials", 0) > 0
+        return int(self.metadata.get("trainingOptions", {}).get("numTrials", 0)) > 0
     
     def fetch_target(self) -> str:
         """Fetches and returns model target variable"""
@@ -58,6 +59,7 @@ class ModelData(Config):
             FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
         """
         df = self.query(feature_importance_sql)
+        df.rename(columns={'feature': 'name'}, inplace=True)
         return  df.to_dict('records')
         
     def fetch_hyperparams(self) -> List[Dict[str, Union[str, float]]]:
@@ -95,12 +97,26 @@ class ModelData(Config):
     
     def fetch_trial_info(self) -> List[Dict[str, float]]:
         
-        if self.model_type :
-            raise ValueError(f"Fetching feature importance is not supported for {self.model_type} model type.")
+        if not self.is_tunning:
+            raise ValueError(f"Fetching trial info is not supported for non hyperparameter-tunning models.")
 
-        feature_importance_sql = f"""
-            SELECT *
-            FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
+        trial_info_sql = f"""
+            SELECT 
+                trial_id, hyperparameters.*, hparam_tuning_evaluation_metrics.*, 
+                training_loss, eval_loss, status, error_message, is_optimal
+            FROM ML.TRIAL_INFO(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
         """
+        df = self.query(trial_info_sql)
+        cols_to_melt = [col for col in df.columns if col != 'trial_id']
+
+        df_melted = pd.melt(df, id_vars=['trial_id'], value_vars=cols_to_melt, 
+                            var_name='name', value_name='value')
+        
+        # string and float columns must be in separate columns for BigQuery export
+        df_melted["value_string"] = df_melted.value if isinstance(df_melted.value, str) else None
+        df_melted['value_float'] = df_melted['value'].apply(lambda x: float(x) if x is not None and not isinstance(x, str) else None)
+
+        df_melted.drop('value', axis=1, inplace=True)
+        return  df_melted.to_dict('records')
 
 
