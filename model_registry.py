@@ -35,18 +35,32 @@ class ModelRegistry(Config):
             self.client.create_table(bigquery.Table(self.full_table_id, schema=schema.value))
             print(f"Table: {self.full_table_id} successfully created.")
 
-    def add_model(self, model_data: ModelData) -> None:
+    def add_model(self, model: ModelData) -> None:
         """Adds a model to the registry."""
-        
+        schema = self.fetch_schema()
+
+        if any(field.name == 'features' for field in schema):
+            features_input = model.fetch_feature_importance()
+        else:
+            features_input = model.fetch_feature_names()
+
         rows_to_insert = [{
-            "model_name": model_data.model_id,
-            "created": model_data.created,
-            "type": model_data.model_type,
-            "features": model_data.fetch_feature_importance(),
-            "eval": model_data.fetch_eval_metrics(),
-            "training": model_data.fetch_training_info(),
-            "hyperparams": model_data.fetch_hyperparams(),
+            "model_name": model.model_id,
+            "created": model.created,
+            "type": model.model_type,
+            "features": features_input,
+            "eval": model.fetch_eval_metrics(),
+            "training": model.fetch_training_info(),
+            "hyperparams": model.fetch_hyperparameters(),
         }]
-        
-        self.client.insert_rows_json(self.full_table_id, rows_to_insert)
+
+        # Check if 'is_tunning' exists in schema
+        if any(field.name == 'tunning' for field in schema):
+            rows_to_insert[0]["tunning_info"] = model.fetch_trial_info()
+
+            self.client.insert_rows_json(self.full_table_id, rows_to_insert)
+
+    def fetch_schema(self):
+        table = self.client.get_table(self.full_table_id)
+        return table.schema
 
