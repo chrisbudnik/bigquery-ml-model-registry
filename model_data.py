@@ -8,9 +8,6 @@ import pandas as pd
 
 class ModelData(Config):
     """Responsible for fetching and storing model-related metadata."""
-
-    STRING_HYPERPARAMS = ["dataSplitMethod", "treeMethod", "categoryEncodingMethod", "inputLabelColumns",
-                          "lossType", "optimizationStrategy", "optimizer", "activationFn"]
     
     def __init__(self, project_id: str, dataset_id: str, model_id: str) -> None:
         self.project_id = project_id
@@ -66,19 +63,35 @@ class ModelData(Config):
         df = self.query(feature_importance_sql)
         df.rename(columns={'feature': 'name'}, inplace=True)
         return  df.to_dict('records')
-        
-    def fetch_hyperparams(self) -> List[Dict[str, Union[str, float]]]:
+    
+    @staticmethod
+    def _format_hyperparam_value(value: Any) -> Union[str, Any]:
+        if isinstance(value, list):
+            return "-".join(value)
+        return value
+    
+    def fetch_hyperparameters(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns hyperparameters."""
 
-        hyperparams = self.metadata["trainingOptions"]
-        hyperparams.pop('inputLabelColumns', None)
-        hyperparams_data = [{"name": key,
-                            "value_string": str(value) if key in self.STRING_HYPERPARAMS  else None,
-                            "value_float": float(value) if key not in self.STRING_HYPERPARAMS else None}
-                            for key, value in hyperparams.items()]
-        
-        return [item for item in hyperparams_data if item['name'] != 'inputLabelColumns']
+        hyperparams: Dict[str, Any] = self.metadata["trainingOptions"]
 
+        hyperparams_data = []
+        for key, value in hyperparams.items():
+            # Exclude target label from hyperparams
+            if key == 'inputLabelColumns':
+                continue
+
+            hyperparam_dict = {}
+            hyperparam_dict["name"] = key
+
+            # Determine the type of the value for proper BigQuery export
+            is_value_string_or_list = isinstance(value, list | str)
+            hyperparam_dict["value_string"] = self._format_hyperparam_value(value) if is_value_string_or_list else None
+            hyperparam_dict["value_float"] = float(value) if not is_value_string_or_list else None
+        
+            hyperparams_data.append(hyperparam_dict)
+
+        return [item for item in hyperparams_data if item['name'] != 'inputLabelColumns']
 
     def fetch_eval_metrics(self) -> List[Dict[str, float]]:
         """Fetches and returns evaluation metrics."""
@@ -96,7 +109,6 @@ class ModelData(Config):
             eval_metrics = self.metadata["evaluationMetrics"]['classificationMetrics']
             
         return [{"name": key, "value": float(value)} for key, value in eval_metrics.items()]
-        
 
     def fetch_training_info(self) -> List[Dict[str, float]]:
         """Fetches and returns training info."""
@@ -106,7 +118,7 @@ class ModelData(Config):
     
     def fetch_trial_info(self) -> List[Dict[str, float]]:
         """Fetches and returns trial info based on ML.TRIAL_INFO() function."""
-        
+
         if not self.is_tunning:
             raise ValueError(f"Fetching trial info is not supported for non hyperparameter-tunning models.")
 
@@ -122,11 +134,13 @@ class ModelData(Config):
         df_melted = pd.melt(df, id_vars=['trial_id'], value_vars=cols_to_melt, 
                             var_name='name', value_name='value')
         
-        # strings and floats must be in separate columns for BigQuery export
-        df_melted["value_string"] = df_melted.value if isinstance(df_melted.value, str) else None
+        # Determine the type of the value for proper BigQuery export
+        df_melted["value_string"] = df_melted['value'] if isinstance(df_melted.value, str) else None
         df_melted['value_float'] = df_melted['value'].apply(lambda x: float(x) if x is not None and not isinstance(x, str) else None)
 
         df_melted.drop('value', axis=1, inplace=True)
         return  df_melted.to_dict('records')
+    
+
 
 
