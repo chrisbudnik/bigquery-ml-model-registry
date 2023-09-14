@@ -7,6 +7,7 @@ class RegistrySchema(Enum):
             bigquery.SchemaField("model_name", "STRING"),
             bigquery.SchemaField("created", "DATE"),
             bigquery.SchemaField("type", "STRING"),
+            bigquery.SchemaField("target", "STRING"),
 
             bigquery.SchemaField("features", "STRING"),
 
@@ -30,6 +31,7 @@ class RegistrySchema(Enum):
             bigquery.SchemaField("model_name", "STRING"),
             bigquery.SchemaField("created", "DATE"),
             bigquery.SchemaField("type", "STRING"),
+            bigquery.SchemaField("target", "STRING"),
 
             bigquery.SchemaField("features", "RECORD", mode="REPEATED", fields=(
                 bigquery.SchemaField("name", "STRING"),
