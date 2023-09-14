@@ -2,10 +2,13 @@ from typing import List, Dict, Union, Optional
 from google.cloud import bigquery
 from google.api_core.exceptions import NotFound
 from config import Config
+from model_names import ModelNames
 
 
 class ModelData(Config):
     """Responsible for fetching and storing model-related metadata."""
+
+    STRING_HYPERPARAMS = ["dataSplitMethod", "treeMethod", "categoryEncodingMethod"]
     
     def __init__(self, project_id: str, dataset_id: str, model_id: str) -> None:
         self.project_id = project_id
@@ -25,18 +28,19 @@ class ModelData(Config):
     @property
     def metadata(self) -> Dict:
         """Access model metadata, training info, features and eval metrics"""
-        
         training_runs = self.model.training_runs[0]
-        if training_runs.get("trainingOptions", {}).get("numTrials", 0):
-            raise NotImplementedError("Hyperparameter tunning models are not currently supported.")
         return training_runs
+    
+    @property
+    def is_tunning(self):
+        return self.metadata.get("trainingOptions", {}).get("numTrials", 0) > 0
     
     def fetch_target(self) -> str:
         """Fetches and returns model target variable"""
+        
         target = self.metadata["trainingOptions"]["inputLabelColumns"]
         if len(target) > 1:
             raise NotImplementedError("Multiple target variables are not supported.")
-        
         return target[0]
     
     def fetch_feature_names(self):
@@ -45,12 +49,9 @@ class ModelData(Config):
         
     def fetch_feature_importance(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns feature importance data."""
-
-        TREE_MODELS = ("BOOSTED_TREE_REGRESSOR", "BOOSTED_TREE_CLASSIFIER", 
-                       "RANDOM_FOREST_REGRESSOR", "RANDOM_FOREST_CLASSIFIER")
         
-        if self.model_type not in TREE_MODELS:
-            raise NotImplementedError(f"Fetching feature importance is not supported for {self.model_type} model type.")
+        if self.model_type not in ModelNames.TREE_MODELS:
+            raise ValueError(f"Fetching feature importance is not supported for {self.model_type} model type.")
 
         feature_importance_sql = f"""
             SELECT *
@@ -67,19 +68,31 @@ class ModelData(Config):
                 "importance_cover": row.importance_cover
                 })
         return features
+    
+    def fetch_feature_importance2(self) -> List[Dict[str, Union[str, float]]]:
+        """Fetches and returns feature importance data."""
+        
+        if self.model_type not in ModelNames.TREE_MODELS:
+            raise ValueError(f"Fetching feature importance is not supported for {self.model_type} model type.")
+
+        feature_importance_sql = f"""
+            SELECT *
+            FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
+        """
+
+        df = self.client.query(feature_importance_sql).to_dataframe()
+
+        features = df.to_dict('records')
+        
+        return features
         
     def fetch_hyperparams(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns hyperparameters."""
 
-        def value_type_classifier(value) -> bool:
-            """Helper function that allows distinction between hyperparameter value types."""
-            STRING_HYPERPARAMS = ["dataSplitMethod", "treeMethod", "categoryEncodingMethod"]
-            return value in STRING_HYPERPARAMS
-
         hyperparams = self.metadata["trainingOptions"]
         hyperparams_data = [{"name": key,
-                            "value_string": str(value) if value_type_classifier(key)  else None,
-                            "value_float": float(value) if not value_type_classifier(key) else None}
+                            "value_string": str(value) if key in self.STRING_HYPERPARAMS  else None,
+                            "value_float": float(value) if key not in self.STRING_HYPERPARAMS else None}
                             for key, value in hyperparams.items()]
         
         return [item for item in hyperparams_data if item['name'] != 'inputLabelColumns']
@@ -105,3 +118,15 @@ class ModelData(Config):
         
         training_info = self.metadata["results"][0]
         return [{"name": key, "value": float(value)} for key, value in training_info.items()]
+    
+    def fetch_trial_info(self) -> List[Dict[str, float]]:
+        
+        if self.model_type :
+            raise ValueError(f"Fetching feature importance is not supported for {self.model_type} model type.")
+
+        feature_importance_sql = f"""
+            SELECT *
+            FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
+        """
+
+
