@@ -1,8 +1,8 @@
 from typing import List, Dict, Union, Optional, Any
 from google.cloud import bigquery
 from google.api_core.exceptions import NotFound
-from config import Config
-from model_names import ModelNames
+from .config import Config
+from .model_names import ModelNames
 import pandas as pd
 
 

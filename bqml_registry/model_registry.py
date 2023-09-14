@@ -1,9 +1,9 @@
 from typing import List, Dict, Union, Optional, Literal
 from google.cloud import bigquery
 from google.api_core.exceptions import NotFound
-from config import Config
-from model_data import ModelData
-from schemas import RegistrySchema
+from .config import Config
+from .model_data import ModelData
+from .schemas import RegistrySchema
 
 
 class ModelRegistry(Config):

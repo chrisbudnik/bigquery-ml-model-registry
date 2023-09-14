@@ -1,5 +1,4 @@
-from model_registry import ModelRegistry
-from model_data import ModelData
+from bqml_registry import ModelRegistry, ModelData
 
 from pprint import pprint
 
