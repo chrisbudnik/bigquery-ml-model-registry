@@ -46,7 +46,7 @@ class ModelData(Config):
     def fetch_feature_names(self):
         """Fetches and returns feature names."""
         return [{"name": feature.name} for feature in self.model.feature_columns]
-        
+    
     def fetch_feature_importance(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns feature importance data."""
         
@@ -57,34 +57,8 @@ class ModelData(Config):
             SELECT *
             FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
         """
-        feature_importance_results = self.client.query(feature_importance_sql).result()
-    
-        features = []
-        for row in feature_importance_results:
-            features.append({
-                "name": row.feature,
-                "importance_weight": row.importance_weight,
-                "importance_gain": row.importance_gain,
-                "importance_cover": row.importance_cover
-                })
-        return features
-    
-    def fetch_feature_importance2(self) -> List[Dict[str, Union[str, float]]]:
-        """Fetches and returns feature importance data."""
-        
-        if self.model_type not in ModelNames.TREE_MODELS:
-            raise ValueError(f"Fetching feature importance is not supported for {self.model_type} model type.")
-
-        feature_importance_sql = f"""
-            SELECT *
-            FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
-        """
-
-        df = self.client.query(feature_importance_sql).to_dataframe()
-
-        features = df.to_dict('records')
-        
-        return features
+        df = self.query(feature_importance_sql)
+        return  df.to_dict('records')
         
     def fetch_hyperparams(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns hyperparameters."""
