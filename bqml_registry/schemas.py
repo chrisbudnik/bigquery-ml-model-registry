@@ -43,6 +43,14 @@ class RegistrySchema():
             ))
     ]
 
+    tunning_fields = [
+            bigquery.SchemaField("tunning", "RECORD", mode="REPEATED", fields=(
+            bigquery.SchemaField("name", "STRING"),
+            bigquery.SchemaField("value_string", "STRING"),
+            bigquery.SchemaField("value_float", "FLOAT64")
+            ))
+    ]
+
     def __init__(self, 
                  feature_importance: bool = False,
                  evaluation: bool = True,
@@ -63,6 +71,8 @@ class RegistrySchema():
         
         if self.feature_importance:
             schema.extend(self.feature_importance_fields)
+        else: 
+            schema.extend(self.feature_fields)
             
         if self.evaluation:
             schema.extend(self.eval_fields)
