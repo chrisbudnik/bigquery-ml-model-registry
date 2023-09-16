@@ -44,7 +44,6 @@ class RegistrySchema():
     ]
 
     def __init__(self, 
-                 general_fields: bool = True,
                  feature_importance: bool = False,
                  evaluation: bool = True,
                  training_info: bool = True,
@@ -52,7 +51,6 @@ class RegistrySchema():
                  tunning_info: bool = True,
                  ) -> None:
         
-        self.general_fields = general_fields
         self.feature_importance = feature_importance
         self.evaluation = evaluation
         self.training_info = training_info
@@ -61,9 +59,7 @@ class RegistrySchema():
 
     def build_schema(self) -> list:
         schema = []
-        
-        if self.general_fields:
-            schema.extend(self.general_fields)
+        schema.extend(self.general_fields)
         
         if self.feature_importance:
             schema.extend(self.feature_importance_fields)
