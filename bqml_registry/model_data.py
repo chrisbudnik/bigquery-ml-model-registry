@@ -29,7 +29,8 @@ class ModelData(Config):
 
     @property
     def metadata(self) -> Dict[str, Any]:
-        """Access model metadata, training info, features and eval metrics"""
+        """Access model metadata, training info, features and eval metrics."""
+
         training_runs = self.model.training_runs[0]
         return training_runs
     
@@ -56,12 +57,11 @@ class ModelData(Config):
         if self.model_type not in ModelNames.TREE_MODELS:
             raise ValueError(f"Fetching feature importance is not supported for {self.model_type} model type.")
 
-        feature_importance_sql = f"""
-            SELECT *
-            FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
-        """
-        df = self.query(feature_importance_sql)
+        df = self.execute_feature_importance_sql()
+
+        # Rename column 'feature' into name to match BigQuery schema
         df.rename(columns={'feature': 'name'}, inplace=True)
+
         return  df.to_dict('records')
     
     @staticmethod
@@ -91,7 +91,7 @@ class ModelData(Config):
         
             hyperparams_data.append(hyperparam_dict)
 
-        return [item for item in hyperparams_data if item['name'] != 'inputLabelColumns']
+        return hyperparams_data
 
     def fetch_eval_metrics(self) -> List[Dict[str, float]]:
         """Fetches and returns evaluation metrics."""
@@ -122,15 +122,11 @@ class ModelData(Config):
         if not self.is_tunning:
             raise ValueError(f"Fetching trial info is not supported for non hyperparameter-tunning models.")
 
-        trial_info_sql = f"""
-            SELECT 
-                trial_id, hyperparameters.*, hparam_tuning_evaluation_metrics.*, 
-                training_loss, eval_loss, status, error_message, is_optimal
-            FROM ML.TRIAL_INFO(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
-        """
-        df = self.query(trial_info_sql)
-        cols_to_melt = [col for col in df.columns if col != 'trial_id']
+        df = self.execute_trial_info_sql()
 
+        # Melt Dataframe, trial_id remains as column - others are unpivoted
+        cols_to_melt = [col for col in df.columns if col != 'trial_id']
+        
         df_melted = pd.melt(df, id_vars=['trial_id'], value_vars=cols_to_melt, 
                             var_name='name', value_name='value')
         
@@ -138,9 +134,28 @@ class ModelData(Config):
         df_melted["value_string"] = df_melted['value'] if isinstance(df_melted.value, str) else None
         df_melted['value_float'] = df_melted['value'].apply(lambda x: float(x) if x is not None and not isinstance(x, str) else None)
 
+        # Drop unnecessary 'value' column, save results into a dict
         df_melted.drop('value', axis=1, inplace=True)
         return  df_melted.to_dict('records')
     
+    def execute_trial_info_sql(self) -> pd.DataFrame:
+        """Executes ML.TRIAL_INFO() function and saves results in a DataFrame."""
 
+        trial_info_sql = f"""
+            SELECT 
+                trial_id, hyperparameters.*, hparam_tuning_evaluation_metrics.*, 
+                training_loss, eval_loss, status, error_message, is_optimal
+            FROM ML.TRIAL_INFO(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
+        """
+        return self.query(trial_info_sql)
+
+    def execute_feature_importance_sql(self) -> pd.DataFrame:
+        """Executes ML.FEATURE_IMPORTANCE() function and saves results in a DataFrame."""
+    
+        feature_importance_sql = f"""
+            SELECT *
+            FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
+        """
+        return self.query(feature_importance_sql)
 
 
