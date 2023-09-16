@@ -61,11 +61,13 @@ class ModelRegistry(Config):
         self.client.insert_rows_json(self.full_table_id, [model_insert_dict])
 
     def fetch_schema(self):
+        """Fetch model registry schema."""
         table = self.client.get_table(self.full_table_id)
         return table.schema
     
     def _check_if_table_exists(self) -> bool:
         """Check if model registry exists."""
+        
         try:
             self.client.get_table(self.full_table_id)
             return True
