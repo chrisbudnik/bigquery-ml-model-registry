@@ -4,6 +4,7 @@ from google.api_core.exceptions import NotFound
 from .config import Config
 from .model_data import ModelData
 from .schemas import RegistrySchema
+from .model_names import ModelNames
 
 
 class ModelRegistry(Config):
@@ -42,6 +43,9 @@ class ModelRegistry(Config):
         }
 
         if any(field.name == 'features' for field in schema):
+            if model.model_type not in ModelNames.TREE_MODELS:
+                raise ValueError("Feature importance can be only calculated for tree-based models.")
+            
             model_insert_dict["feature"] = model.fetch_feature_importance()
         else:
             model_insert_dict["feature"] = model.fetch_feature_names()
@@ -67,7 +71,7 @@ class ModelRegistry(Config):
     
     def _check_if_table_exists(self) -> bool:
         """Check if model registry exists."""
-        
+
         try:
             self.client.get_table(self.full_table_id)
             return True
