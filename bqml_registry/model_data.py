@@ -137,60 +137,9 @@ class ModelData(Config):
         # Drop unnecessary 'value' column, save results into a dict
         df_melted.drop('value', axis=1, inplace=True)
         return  df_melted.to_dict('records')
-    
-    def execute_trial_info_sql(self) -> pd.DataFrame:
-        """Executes ML.TRIAL_INFO() function and saves results in a DataFrame."""
-
-        trial_info_sql = f"""
-            SELECT 
-                trial_id, hyperparameters.*, hparam_tuning_evaluation_metrics.*, 
-                training_loss, eval_loss, status, error_message, is_optimal
-            FROM ML.TRIAL_INFO(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
-        """
-        return self.query(trial_info_sql)
-
-    def execute_feature_importance_sql(self) -> pd.DataFrame:
-        """Executes ML.FEATURE_IMPORTANCE() function and saves results in a DataFrame."""
-    
-        feature_importance_sql = f"""
-            SELECT *
-            FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
-        """
-        return self.query(feature_importance_sql)
-    
-    def execute_information_schema_sql(self, region: str = "us") -> pd.DataFrame:
-        """Executes and fetches results from INFORMATION_SCHEMA.JOBS_BY_PROJECT view."""
-
-        information_schema_sql = f"""
-            SELECT * 
-            FROM `chris-sandbox-2023.region-{region}.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
-            WHERE project_id = "{self.project_id}"
-        """
-        return self.query(information_schema_sql)
-    
-    def execute_search_model_sql(self, region: str = "us") -> pd.DataFrame:
-        """Executes query on INFORMATION_SCHEMA and searches for model creation statement."""
-
-        search_model_sql = f"""
-            SELECT *
-            FROM `chris-sandbox-2023.region-{region}.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
-            WHERE project_id = "{self.project_id}"
-                AND statement_type = "CREATE_MODEL"
-                AND state = "DONE"
-                AND destination_table.table_id = "{self.model_id}"
-            
-            ORDER BY creation_time DESC
-            LIMIT 1
-        """
-        return self.query(search_model_sql)
 
     def generate_model_sql(self, region: str = "us") -> str:
         """Retrive model create statement sql from information schema."""
 
         model_info = self.execute_search_model_sql(region)
         return "".join(model_info["query"].to_list())
-        
-
-
-
-
