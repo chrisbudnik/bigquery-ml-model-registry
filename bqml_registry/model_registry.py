@@ -14,53 +14,61 @@ class ModelRegistry(Config):
         self.dataset_id = dataset_id
         self.table_id = table_id
         self.full_table_id = f"{project_id}.{dataset_id}.{table_id}"
-
-    def _replace_table(self, schema: RegistrySchema) -> None:
-        """Replacee table based on provided schema."""
-
-        self.client.delete_table(self.full_table_id, not_found_ok=True)
-        self.client.create_table(bigquery.Table(self.full_table_id, schema=schema.value))
-        print(f"Table: {self.full_table_id} replaced.")
     
-    def init_table(self, schema: RegistrySchema, replace: bool = False) -> None:
+    def init_table(self, schema: RegistrySchema) -> None:
         """Initialize or validate the registry table."""
 
-        try:
-            self.client.get_table(self.full_table_id)
+        if self._check_if_table_exists():
             print(f"Table: {self.full_table_id} already exists!")
 
-            if replace: self._replace_table(schema)
-
-        except NotFound:
-            self.client.create_table(bigquery.Table(self.full_table_id, schema=schema.value))
+        else:
+            table_definition = bigquery.Table(self.full_table_id, schema=schema.value)
+            self.client.create_table(table_definition)
             print(f"Table: {self.full_table_id} successfully created.")
 
     def add_model(self, model: ModelData) -> None:
         """Adds a model to the registry."""
+
+        # Fetching schema to automatially collect required metrics
         schema = self.fetch_schema()
 
-        if any(field.name == 'features' for field in schema):
-            features_input = model.fetch_feature_importance()
-        else:
-            features_input = model.fetch_feature_names()
-
-        rows_to_insert = [{
+        # Create a dict with all model metadata
+        model_insert_dict = {
             "model_name": model.model_id,
             "created": model.created,
             "type": model.model_type,
-            "features": features_input,
-            "eval": model.fetch_eval_metrics(),
-            "training": model.fetch_training_info(),
-            "hyperparams": model.fetch_hyperparameters(),
-        }]
+            "target": model.fetch_target(),
+            "is_tunning": model.is_tunning
+        }
 
-        # Check if 'is_tunning' exists in schema
+        if any(field.name == 'features' for field in schema):
+            model_insert_dict["feature"] = model.fetch_feature_importance()
+        else:
+            model_insert_dict["feature"] = model.fetch_feature_names()
+
+        if any(field.name == 'eval' for field in schema):
+            model_insert_dict["hyperparams"] = model.fetch_eval_metrics()
+
+        if any(field.name == 'training_info' for field in schema):
+            model_insert_dict["training_info"] = model.fetch_training_info()      
+        
+        if any(field.name == 'hyperparams' for field in schema):
+            model_insert_dict["hyperparams"] = model.fetch_hyperparameters()
+
         if any(field.name == 'tunning' for field in schema):
-            rows_to_insert[0]["tunning_info"] = model.fetch_trial_info()
+            model_insert_dict["tunning"] = model.fetch_trial_info()
 
-            self.client.insert_rows_json(self.full_table_id, rows_to_insert)
+        self.client.insert_rows_json(self.full_table_id, [model_insert_dict])
 
     def fetch_schema(self):
         table = self.client.get_table(self.full_table_id)
         return table.schema
-
+    
+    def _check_if_table_exists(self) -> bool:
+        """Check if model registry exists."""
+        try:
+            self.client.get_table(self.full_table_id)
+            return True
+        
+        except NotFound:
+            return False
