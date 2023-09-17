@@ -1,10 +1,4 @@
-# BigQuery ML Model Registry
-
-## Overview
-
-The `bigquery-ml-model-registry` module is engineered to facilitate the management of machine learning models within Google BigQuery. This Python-based solution provides a streamlined way to create a model registry, add models, fetch model metadata, handle model naming conventions, and customize BigQuery configurations.
-
-## File Structure
+## `bqml_registry` File Structure
 
 Below is a brief outline of the module's file architecture:
 
