@@ -187,5 +187,9 @@ class ModelData(Config):
     def generate_model_sql(self, region: str = "us") -> str:
         """Retrive model create statement sql from information schema."""
 
-        model_info = self.execute_search_model_sql(region)
+        try:
+            model_info = self.execute_search_model_sql(region)
+        except ValueError:
+            raise ValueError("Query could not be found. Model create statement was most likely executed on a different project.")
+        
         return "".join(model_info["query"].to_list())
