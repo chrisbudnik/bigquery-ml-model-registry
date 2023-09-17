@@ -49,20 +49,3 @@ The `schemas.py` file includes the `RegistrySchema` class. This class allows use
 
 The `config.py` file contains a configuration class that facilitates BigQuery connection management, enables SQL queries on BigQuery tables, and checks for the required permissions.
 
-#### Features:
-
-- Initialize BigQuery connection settings.
-- Execute SQL queries on tables.
-- Check and validate read/write permissions for BigQuery tables.
-
-## Usage
-
-For installation and setup procedures, please refer to the primary README documentation.
-
-## Contributions
-
-Contributions to this project are always welcome. Feel free to raise issues or submit pull requests.
-
-## License
-
-This project is licensed under the MIT License. For more details, refer to the [LICENSE.md](LICENSE.md) file.
