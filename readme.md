@@ -60,7 +60,7 @@ Additionaly, `ModelData` class provides various methods to fetch or generate inf
 | `fetch_eval_metrics`    | Fetches evaluation metrics for the model.                                                       |
 | `fetch_training_info`   | Gets information about the training process of the model.                                        |
 | `fetch_trial_info`      | Retrieves information about the different trials performed during hyperparameter tuning.         |
-| `generate_model_sql`    | Generates SQL code for making predictions using the model.                                       |
+| `generate_model_sql`    | Generates model creation statement.                                      |
 
 These properties and methods can be accessed directly from a `ModelData` instance, providing an easy way to obtain key details about your machine learning models in BigQuery.
 
@@ -80,7 +80,9 @@ model = ModelData(project_id, dataset_id, model_id)
 
 ## Fetching Feature Importance
 
-Once the `ModelData` instance is created, you can fetch feature importance to understand the impact of each feature in model predictions.
+Once the `ModelData` instance is created, you can fetch feature importance to understand the impact of each feature in model predictions. 
+> :Warning: **Note**: Feature importance can only be calculated for models based on decision tree algorithms, such as boosted trees or random forests. If you're using other types of models, this functionality will not be applicable.
+
 
 ```python
 # Fetch feature importance
@@ -96,9 +98,11 @@ You can also use the `ModelData` instance to fetch the hyperparameters that were
 hyperparameters = model.fetch_hyperparameters()
 ```
 
-## Generating SQL Code for the Model
+## Generating Model SQL 
 
-To generate SQL code for predictions using a particular model, use the `generate_model_sql` method. This SQL code can be executed in BigQuery to make predictions.
+To generate SQL code that was used for model creation, take advantage of the `generate_model_sql` method. 
+It is one of the easiest ways to check implemented data transformations and retrive the code in general. 
+Under the hood, method searches project INFORMATION_SCHEMA.JOBS. 
 
 ```python
 # Generate SQL code
