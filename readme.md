@@ -27,7 +27,7 @@ Before diving into the functionalities, make sure you have:
 
 - Google Cloud SDK and BigQuery Python SDK installed
 - An active Google Cloud project with billing enabled
-- A BigQuery dataset and model
+- A BigQuery dataset with saved BigQuery ML model
 
 ## Setup
 
@@ -81,7 +81,7 @@ model = ModelData(project_id, dataset_id, model_id)
 ## Fetching Feature Importance
 
 Once the `ModelData` instance is created, you can fetch feature importance to understand the impact of each feature in model predictions. 
-> :Warning: **Note**: Feature importance can only be calculated for models based on decision tree algorithms, such as boosted trees or random forests. If you're using other types of models, this functionality will not be applicable.
+> **Note**: Feature importance can only be calculated for models based on decision tree algorithms, such as boosted trees or random forests. If you're using other types of models, this functionality will not be applicable.
 
 
 ```python
