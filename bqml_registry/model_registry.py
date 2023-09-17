@@ -23,7 +23,7 @@ class ModelRegistry(Config):
             print(f"Table: {self.full_table_id} already exists!")
 
         else:
-            table_definition = bigquery.Table(self.full_table_id, schema=schema.value)
+            table_definition = bigquery.Table(self.full_table_id, schema=schema.build_schema())
             self.client.create_table(table_definition)
             print(f"Table: {self.full_table_id} successfully created.")
 
