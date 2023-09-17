@@ -46,9 +46,9 @@ class ModelRegistry(Config):
             if model.model_type not in ModelNames.TREE_MODELS:
                 raise ValueError("Feature importance can be only calculated for tree-based models.")
             
-            model_insert_dict["feature"] = model.fetch_feature_importance()
+            model_insert_dict["features"] = model.fetch_feature_importance()
         else:
-            model_insert_dict["feature"] = model.fetch_feature_names()
+            model_insert_dict["features"] = model.fetch_feature_names()
 
         if any(field.name == 'eval' for field in schema):
             model_insert_dict["hyperparams"] = model.fetch_eval_metrics()

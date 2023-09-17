@@ -140,7 +140,7 @@ class ModelData(Config):
     
     def execute_trial_info_sql(self) -> pd.DataFrame:
         """Executes ML.TRIAL_INFO() function and saves results in a DataFrame."""
-        
+
         trial_info_sql = f"""
             SELECT 
                 trial_id, hyperparameters.*, hparam_tuning_evaluation_metrics.*, 
@@ -183,6 +183,7 @@ class ModelData(Config):
             LIMIT 1
         """
         return self.query(search_model_sql)
+     
     def generate_model_sql(self, region: str = "us") -> str:
         """Retrive model create statement sql from information schema."""
 
