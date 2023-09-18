@@ -123,7 +123,7 @@ registry = ModelRegistry(project_id, dataset_id, "model_registry")
 schema = RegistrySchema(feature_importance=True)
 
 # Initialize model registry table
-registry.init_table(schema)
+registry.create_registry(schema)
 ```
 
 ## Registering a Model to the Model Registry
