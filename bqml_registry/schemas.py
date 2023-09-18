@@ -53,16 +53,10 @@ class RegistrySchema():
 
     def __init__(self, 
                  feature_importance: bool = False,
-                 evaluation: bool = True,
-                 training_info: bool = True,
-                 hyperparameters: bool = True,
                  tunning_info: bool = True,
                  ) -> None:
         
         self.feature_importance = feature_importance
-        self.evaluation = evaluation
-        self.training_info = training_info
-        self.hyperparameters = hyperparameters
         self.tunning_info = tunning_info
 
     def build_schema(self) -> list:
@@ -74,14 +68,10 @@ class RegistrySchema():
         else: 
             schema.extend(self.feature_fields)
             
-        if self.evaluation:
-            schema.extend(self.eval_fields)
+        schema = schema + self.eval_fields + self.training_info_fields + self.hyperparam_fields
         
-        if self.training_info:
-            schema.extend(self.training_info_fields)
-        
-        if self.hyperparameters:
-            schema.extend(self.hyperparam_fields)
+        if self.tunning_info:
+            schema.extend(self.tunning_info)
         
         return schema
         
