@@ -16,7 +16,7 @@ class ModelRegistry(Config):
         self.table_id = table_id
         self.full_table_id = f"{project_id}.{dataset_id}.{table_id}"
     
-    def init_table(self, schema: RegistrySchema) -> None:
+    def create_registry(self, schema: RegistrySchema) -> None:
         """Initialize or validate the registry table."""
 
         if self._check_if_table_exists():
@@ -39,10 +39,11 @@ class ModelRegistry(Config):
             "created": model.created,
             "type": model.model_type,
             "target": model.fetch_target(),
-            "is_tunning": model.is_tunning
+            "is_tunning": model.is_tunning,
         }
 
         if any(field.name == 'features' for field in schema):
+            # Raise error when model is not tree-based (no support for feature importance)
             if model.model_type not in ModelNames.TREE_MODELS:
                 raise ValueError("Feature importance can be only calculated for tree-based models.")
             
@@ -50,14 +51,12 @@ class ModelRegistry(Config):
         else:
             model_insert_dict["features"] = model.fetch_feature_names()
 
-        if any(field.name == 'eval' for field in schema):
-            model_insert_dict["hyperparams"] = model.fetch_eval_metrics()
-
-        if any(field.name == 'training_info' for field in schema):
-            model_insert_dict["training_info"] = model.fetch_training_info()      
-        
-        if any(field.name == 'hyperparams' for field in schema):
-            model_insert_dict["hyperparams"] = model.fetch_hyperparameters()
+        metadata_dict = {
+            "eval": model.fetch_eval_metrics(),
+            "trainint_info": model.fetch_training_info(),
+            "hyperparams": model.fetch_hyperparameters()
+        }
+        model_insert_dict = model_insert_dict | metadata_dict
 
         if any(field.name == 'tunning' for field in schema):
             model_insert_dict["tunning"] = model.fetch_trial_info()
