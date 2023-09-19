@@ -26,44 +26,9 @@ The `bigquery-ml-model-registry` project leverages Google's BigQuery API in Pyth
 
 ## Repo Structure
 
-```
-bqml_registry/
-├── __init__.py
-├── model_data.py       # Contains the ModelData class
-├── model_registry.py   # Contains the ModelRegistry class
-└── registry_template.py  # Contains the RegistryTemplate class
-
-example.py              # Demonstrates use-case scenarios for the module functionalities
-sql-for-registry.md     # Provides example SQL queries for handling registry tables, pivoting hyperparameters, and managing array records
-```
-
-### `bqml_registry/`
-
-This is the main code base for the BQML Model Registry module. It contains all the necessary classes and functionalities.
-
-#### `model_data.py`
-
-This file contains the `ModelData` class, which is responsible for fetching the metadata and evaluation metrics for models.
-
-#### `model_registry.py`
-
-This file contains the `ModelRegistry` class, responsible for the creation of the registry table and automating the addition of new models to this table.
-
-#### `registry_template.py`
-
-This file contains the `RegistryTemplate` class, which allows users to define the schema of the registry table according to their needs.
-
-### `example.py`
-
-An example script that demonstrates how to use the various functionalities provided by the BQML Model Registry module.
-
-### `sql-for-registry.md`
-
-A markdown file that provides example SQL queries for handling special use-cases like pivoting hyperparameters or managing array records in the registry table.
-
----
-
-For more details, please refer to the individual class documentation and example use-cases.
+- `bqml_registry/` - This is the main code base for the BQML Model Registry module. It contains all the necessary classes and functionalities.
+- `example.py` - An example script that demonstrates how to use the various functionalities provided by the BQML Model Registry module.
+- `sql-for-registry.md` - A markdown file that provides example SQL queries for handling special use-cases like pivoting hyperparameters or managing array records in the registry table.
 
 # Prerequisites
 
