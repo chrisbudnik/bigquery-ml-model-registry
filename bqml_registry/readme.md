@@ -8,19 +8,43 @@ Below is a brief outline of the module's file architecture:
 - `schemas.py`: Features the `RegistrySchema` class to specify the schema of the model registry.
 - `config.py`: A config class that manages BigQuery connections, querying tables, and permission checks.
 
-### model_data.py (Backbone)
+## ModelData Properties & Methods
 
-Serving as the backbone of the module, `model_data.py` contains the `ModelData` class, which is essential for fetching and handling model metadata.
+The `ModelData` class also exposes several properties that provide various types of information about the model. Here's a table describing these properties:
 
-#### Features:
+| Property       | Description                                                                                                 |
+|----------------|-------------------------------------------------------------------------------------------------------------|
+| `model`        | A `bigquery.Model` object that allows interaction with all built-in properties of the BigQuery model.        |
+| `created`      | Timestamp indicating when the model was created.                                                            |
+| `model_type`   | Specifies the type of the machine learning model (e.g., linear regression, neural network, etc.).            |
+| `metadata`     | Contains most of the information about the model in raw format, such as hyperparameters and training data.   |
+| `is_tuning`    | Boolean value that is `True` if the model involves hyperparameter tuning, otherwise `False`.                 |
 
-- Extract various types of metadata for individual models.
-- Support for batch metadata extraction for multiple models.
+Additionaly, `ModelData` class provides various methods to fetch or generate information about the model. Here are the supported methods:
+
+| Method                  | Description                                                                                     |
+|-------------------------|-------------------------------------------------------------------------------------------------|
+| `fetch_target`          | Fetches the target variable for the model.                                                      |
+| `fetch_feature_names`   | Retrieves the names of features used in the model.                                               |
+| `fetch_feature_importance` | Gets the importance of each feature in the model.                                              |
+| `fetch_hyperparameters` | Retrieves the hyperparameters used in training the model.                                        |
+| `fetch_eval_metrics`    | Fetches evaluation metrics for the model.                                                       |
+| `fetch_training_info`   | Gets information about the training process of the model.                                        |
+| `fetch_trial_info`      | Retrieves information about the different trials performed during hyperparameter tuning.         |
+| `generate_model_sql`    | Generates model creation statement.                                      |
+
+These properties and methods can be accessed directly from a `ModelData` instance, providing an easy way to obtain key details about your machine learning models in BigQuery.
 
 ### model_registry.py
 
-Although not the backbone, this file is critical for registry management. It hosts the `ModelRegistry` class, which provides functionalities for updating the registry, such as adding or removing models.
+Class is critical for registry management. It hosts the `ModelRegistry` class, which provides functionalities for updating the registry, such as adding or removing models.
 
+| Method                  | Description                                                                                     |
+|-------------------------|-------------------------------------------------------------------------------------------------|
+| `create_registry`       | Creates a new registry table in Google BigQuery to store model information.                      |
+| `add_model`             | Automatically adds a new model to the existing registry table along with all its associated metadata and evaluation metrics. |
+
+These tables offer a concise reference to the available methods and their functionalities for both `ModelData` and `ModelRegistry`.
 #### Features:
 
 - Create a new model registry.

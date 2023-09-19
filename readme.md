@@ -6,17 +6,17 @@ The `bigquery-ml-model-registry` project leverages Google's BigQuery API in Pyth
 
 ## Features
 
-### ModelData
+### `ModelData` Class
 
 - **Fetching Model Metadata**: Retrieves all essential metadata associated with a BigQuery ML model, such as hyperparameters, feature names, and their importances.
 - **Evaluation Metrics**: Fetches various metrics like accuracy, precision, recall, etc., which help in the evaluation and comparison of different models.
 
-### ModelRegistry
+### `ModelRegistry` Class
 
 - **Registry Creation**: Provides methods for creating a new registry table within BigQuery to store model information.
 - **Automated Model Addition**: Includes functionalities to automatically add new models to the registry table with all their associated metadata and evaluation metrics.
 
-### RegistryTemplate
+### `RegistryTemplate` Class
 
 - **Flexible Schema Definition**: Allows users to define the schema of the registry table based on their specific needs.
 - **Three Recommended Options for Schema**:
@@ -45,33 +45,6 @@ First, import the necessary modules.
 ```python
 from bqml_registry import ModelRegistry, ModelData, RegistrySchema
 ```
-
-## ModelData Properties & Methods
-
-The `ModelData` class also exposes several properties that provide various types of information about the model. Here's a table describing these properties:
-
-| Property       | Description                                                                                                 |
-|----------------|-------------------------------------------------------------------------------------------------------------|
-| `model`        | A `bigquery.Model` object that allows interaction with all built-in properties of the BigQuery model.        |
-| `created`      | Timestamp indicating when the model was created.                                                            |
-| `model_type`   | Specifies the type of the machine learning model (e.g., linear regression, neural network, etc.).            |
-| `metadata`     | Contains most of the information about the model in raw format, such as hyperparameters and training data.   |
-| `is_tuning`    | Boolean value that is `True` if the model involves hyperparameter tuning, otherwise `False`.                 |
-
-Additionaly, `ModelData` class provides various methods to fetch or generate information about the model. Here are the supported methods:
-
-| Method                  | Description                                                                                     |
-|-------------------------|-------------------------------------------------------------------------------------------------|
-| `fetch_target`          | Fetches the target variable for the model.                                                      |
-| `fetch_feature_names`   | Retrieves the names of features used in the model.                                               |
-| `fetch_feature_importance` | Gets the importance of each feature in the model.                                              |
-| `fetch_hyperparameters` | Retrieves the hyperparameters used in training the model.                                        |
-| `fetch_eval_metrics`    | Fetches evaluation metrics for the model.                                                       |
-| `fetch_training_info`   | Gets information about the training process of the model.                                        |
-| `fetch_trial_info`      | Retrieves information about the different trials performed during hyperparameter tuning.         |
-| `generate_model_sql`    | Generates model creation statement.                                      |
-
-These properties and methods can be accessed directly from a `ModelData` instance, providing an easy way to obtain key details about your machine learning models in BigQuery.
 
 ## ModelData Instance Creation
 
