@@ -6,20 +6,64 @@ The `bigquery-ml-model-registry` project leverages Google's BigQuery API in Pyth
 
 ## Features
 
-- **Model Name**: Unique identifiers for each model
-- **Model Type**: Classification, Regression, Clustering etc.
-- **Features**: The features used in the model
-- **Feature Importance**: Quantitative measures of the importance of each feature, where applicable
-- **Performance Metrics**: Metrics like accuracy, F1-score, and RMSE to quantify the model's performance
-- **Detailed Hyperparameter Specification**: Full specification of hyperparameters used in training the model
+### ModelData
 
-## Why Use bigquery-ml-model-registry?
+- **Fetching Model Metadata**: Retrieves all essential metadata associated with a BigQuery ML model, such as hyperparameters, feature names, and their importances.
+- **Evaluation Metrics**: Fetches various metrics like accuracy, precision, recall, etc., which help in the evaluation and comparison of different models.
 
-1. **Versatility**: Support for a wide range of ML models.
-2. **Audit Trail**: Keep a comprehensive record of model evolution for governance and troubleshooting.
-3. **Interoperability**: Seamless integration with BigQuery for easy data ingestion and query.
-4. **Scalability**: Designed to scale effortlessly as you add more models.
-5. **Visibility**: Easy-to-use interface to query and extract model metadata.
+### ModelRegistry
+
+- **Registry Creation**: Provides methods for creating a new registry table within BigQuery to store model information.
+- **Automated Model Addition**: Includes functionalities to automatically add new models to the registry table with all their associated metadata and evaluation metrics.
+
+### RegistryTemplate
+
+- **Flexible Schema Definition**: Allows users to define the schema of the registry table based on their specific needs.
+- **Three Recommended Options for Schema**:
+    1. **Include All Columns**: A robust option that includes all possible columns for maximum information.
+    2. **Include Feature Importance**: Tailored for scenarios where tree-based models are used, storing only feature importance data.
+    3. **Focus on Tuning**: Ideal for hyperparameter tuning scenarios, includes general stats and tuning-specific information like trial performance.
+
+## Repo Structure
+
+```
+bqml_registry/
+├── __init__.py
+├── model_data.py       # Contains the ModelData class
+├── model_registry.py   # Contains the ModelRegistry class
+└── registry_template.py  # Contains the RegistryTemplate class
+
+example.py              # Demonstrates use-case scenarios for the module functionalities
+sql-for-registry.md     # Provides example SQL queries for handling registry tables, pivoting hyperparameters, and managing array records
+```
+
+### `bqml_registry/`
+
+This is the main code base for the BQML Model Registry module. It contains all the necessary classes and functionalities.
+
+#### `model_data.py`
+
+This file contains the `ModelData` class, which is responsible for fetching the metadata and evaluation metrics for models.
+
+#### `model_registry.py`
+
+This file contains the `ModelRegistry` class, responsible for the creation of the registry table and automating the addition of new models to this table.
+
+#### `registry_template.py`
+
+This file contains the `RegistryTemplate` class, which allows users to define the schema of the registry table according to their needs.
+
+### `example.py`
+
+An example script that demonstrates how to use the various functionalities provided by the BQML Model Registry module.
+
+### `sql-for-registry.md`
+
+A markdown file that provides example SQL queries for handling special use-cases like pivoting hyperparameters or managing array records in the registry table.
+
+---
+
+For more details, please refer to the individual class documentation and example use-cases.
 
 # Prerequisites
 
