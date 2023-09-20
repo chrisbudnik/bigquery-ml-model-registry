@@ -43,7 +43,7 @@ class ModelRegistry(Config):
         }
 
         if any(field.name == 'features' for field in schema):
-            # Raise error when model is not tree-based (no support for feature importance)
+            # Raise an error if model is not tree-based (no support for feature importance)
             if model.model_type not in ModelNames.TREE_MODELS:
                 raise ValueError("Feature importance can be only calculated for tree-based models.")
             
