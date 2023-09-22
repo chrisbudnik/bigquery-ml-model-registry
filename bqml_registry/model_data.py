@@ -1,22 +1,29 @@
 from typing import List, Dict, Union, Optional, Any
 from google.cloud import bigquery
 from google.api_core.exceptions import NotFound
+import pandas as pd
 from .config import Config
 from .model_names import ModelNames
-import pandas as pd
+from .connector import BigQueryConnector
 
 
-class ModelData(Config):
+class ModelData():
     """Responsible for fetching and storing model-related metadata."""
     
     def __init__(self, project_id: str, dataset_id: str, model_id: str) -> None:
         self.project_id = project_id
         self.dataset_id = dataset_id
         self.model_id = model_id
+        self.fully_model_id = f"{self.project_id}.{self.dataset_id}.{self.model_id}"
+
+        # Initialize BigQueryConnector object
+        self.connector = BigQueryConnector()
 
         try:
-            model_ref = bigquery.Model(f"{self.project_id}.{self.dataset_id}.{model_id}")
-            model = self.client.get_model(model_ref)
+            # Fetch model metadata (raw), else raise error
+            model_ref = bigquery.Model(f"{self.fully_model_id}")
+            model = self.connector.client.get_model(model_ref)
+
         except NotFound:
             raise NameError(f"Model: {self.model_id} was not found in {self.dataset_id} dataset.")
         
@@ -57,7 +64,7 @@ class ModelData(Config):
         if self.model_type not in ModelNames.TREE_MODELS:
             raise ValueError(f"Fetching feature importance is not supported for {self.model_type} model type.")
 
-        df = self.execute_feature_importance_sql()
+        df: pd.DataFrame = self.connector.execute_feature_importance_sql(self.fully_model_id)
 
         # Rename column 'feature' into name to match BigQuery schema
         df.rename(columns={'feature': 'name'}, inplace=True)
@@ -66,6 +73,7 @@ class ModelData(Config):
     
     @staticmethod
     def _format_hyperparam_value(value: Any) -> Union[str, Any]:
+        """Format hyperparameter value to string from a list of strings or string."""
         if isinstance(value, list):
             return "-".join(value)
         return value
@@ -122,7 +130,7 @@ class ModelData(Config):
         if not self.is_tunning:
             raise ValueError(f"Fetching trial info is not supported for non hyperparameter-tunning models.")
 
-        df = self.execute_trial_info_sql()
+        df: pd.DataFrame = self.connector.execute_trial_info_sql(self.fully_model_id)
 
         # Melt Dataframe, trial_id remains as column - others are unpivoted
         cols_to_melt = [col for col in df.columns if col != 'trial_id']
@@ -131,64 +139,18 @@ class ModelData(Config):
                             var_name='name', value_name='value')
         
         # Determine the type of the value for proper BigQuery export
-        df_melted["value_string"] = df_melted['value'] if isinstance(df_melted.value, str) else None
+        df_melted["value_string"] = df_melted['value'] if isinstance(df_melted["value"], str) else None
         df_melted['value_float'] = df_melted['value'].apply(lambda x: float(x) if x is not None and not isinstance(x, str) else None)
 
         # Drop unnecessary 'value' column, save results into a dict
         df_melted.drop('value', axis=1, inplace=True)
-        return  df_melted.to_dict('records')
-    
-    def execute_trial_info_sql(self) -> pd.DataFrame:
-        """Executes ML.TRIAL_INFO() function and saves results in a DataFrame."""
-
-        trial_info_sql = f"""
-            SELECT 
-                trial_id, hyperparameters.*, hparam_tuning_evaluation_metrics.*, 
-                training_loss, eval_loss, status, error_message, is_optimal
-            FROM ML.TRIAL_INFO(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
-        """
-        return self.query(trial_info_sql)
-
-    def execute_feature_importance_sql(self) -> pd.DataFrame:
-        """Executes ML.FEATURE_IMPORTANCE() function and saves results in a DataFrame."""
-    
-        feature_importance_sql = f"""
-            SELECT *
-            FROM ML.FEATURE_IMPORTANCE(MODEL `{self.project_id}.{self.dataset_id}.{self.model_id}`)
-        """
-        return self.query(feature_importance_sql)
-
-    def execute_information_schema_sql(self, region: str = "us") -> pd.DataFrame:
-        """Executes and fetches results from INFORMATION_SCHEMA.JOBS_BY_PROJECT view."""
-
-        information_schema_sql = f"""
-            SELECT * 
-            FROM `chris-sandbox-2023.region-{region}.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
-            WHERE project_id = "{self.project_id}"
-        """
-        return self.query(information_schema_sql)
-
-    def execute_search_model_sql(self, region: str = "us") -> pd.DataFrame:
-        """Executes query on INFORMATION_SCHEMA and searches for model creation statement."""
-
-        search_model_sql = f"""
-            SELECT *
-            FROM `chris-sandbox-2023.region-{region}.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
-            WHERE project_id = "{self.project_id}"
-                AND statement_type = "CREATE_MODEL"
-                AND state = "DONE"
-                AND destination_table.table_id = "{self.model_id}"
-            
-            ORDER BY creation_time DESC
-            LIMIT 1
-        """
-        return self.query(search_model_sql)
+        return df_melted.to_dict('records')
      
     def generate_model_sql(self, region: str = "us") -> str:
         """Retrive model create statement sql from information schema."""
 
         try:
-            model_info = self.execute_search_model_sql(region)
+            model_info: pd.DataFrame = self.connector.execute_search_model_sql(self.project_id, self.model_id, region)
         except ValueError:
             raise ValueError("Query could not be found. Model create statement was most likely executed on a different project.")
         
