@@ -126,7 +126,7 @@ class ModelData():
     
     def fetch_trial_info(self) -> List[Dict[str, float]]:
         """Fetches and returns trial info based on ML.TRIAL_INFO() function."""
-
+        
         if not self.is_tunning:
             raise ValueError(f"Fetching trial info is not supported for non hyperparameter-tunning models.")
 
@@ -148,10 +148,8 @@ class ModelData():
      
     def generate_model_sql(self, region: str = "us") -> str:
         """Retrive model create statement sql from information schema."""
-
-        try:
-            model_info: pd.DataFrame = self.connector.execute_search_model_sql(self.project_id, self.model_id, region)
-        except ValueError:
-            raise ValueError("Query could not be found. Model create statement was most likely executed on a different project.")
         
+        model_info: pd.DataFrame = self.connector.execute_search_model_sql(self.project_id, self.model_id, region)
+
+        # Concatenate all rows into a single string
         return "".join(model_info["query"].to_list())
