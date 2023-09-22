@@ -41,8 +41,5 @@ class Config:
         # Check if all required permissions are granted
         return set(permissions).issubset(set(response.get('permissions', [])))
     
-    def query(self, sql: str) -> pd.DataFrame:
-        """Query BigQuery tables with sql and save results into DataFrame."""
-        return self.client.query(sql).to_dataframe()
 
 
