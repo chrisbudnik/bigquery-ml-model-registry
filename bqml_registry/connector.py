@@ -1,3 +1,5 @@
+from typing import Union
+import datetime
 import pandas as pd
 from google.cloud import bigquery
 from google.cloud.bigquery import ScalarQueryParameter, QueryJobConfig
@@ -16,9 +18,12 @@ class BigQueryConnector(Config):
         """Query BigQuery tables with sql and save results into DataFrame."""
         return self.client.query(sql).to_dataframe()
 
-    def parameterized_query(self, sql: str, params: dict[str: str]) -> pd.DataFrame:
-        """Query BigQuery tables with sql and save results into DataFrame."""
-        query_params = [ScalarQueryParameter(key, "STRING", value) for key, value in params.items()]
+    def parameterized_query(self, sql: str, params: list[str: dict[str, str]]) -> pd.DataFrame:
+        """Query BigQuery tables with sql and save results into DataFrame.
+        Params should be a list of dicts, where each dict contains the following keys:
+        name: name of the parameter, value: value of the parameter, type: type of the parameter
+        """
+        query_params = [ScalarQueryParameter(param["name"], param["type"], param["value"]) for param in params]
         
         job_config = QueryJobConfig()
         job_config.query_parameters = query_params
@@ -45,22 +50,35 @@ class BigQueryConnector(Config):
         """
         return self.query(feature_importance_sql)
 
-    def execute_search_model_sql(self, project_id: str, model_id: str, region: str = "us") -> pd.DataFrame:
+    def execute_search_model_sql(self, 
+                                 project_id: str, 
+                                 model_id: str, 
+                                 limit_date: Union[str, datetime.datetime] = None,
+                                 region: str = "us") -> pd.DataFrame:
         """Executes query on INFORMATION_SCHEMA and searches for model creation statement."""
 
         search_model_sql = f"""
             SELECT *
             FROM `{project_id}.region-{region}.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
-            WHERE project_id = "{project_id}"
+            WHERE project_id = @project_id
                 AND statement_type = "CREATE_MODEL"
                 AND state = "DONE"
-                AND destination_table.table_id = "{model_id}"
+                AND destination_table.table_id = @model_id
+                AND DATE(creation_time) = @limit_date
             
             ORDER BY creation_time DESC
             LIMIT 1
         """
+        # Define parameters for parameterized query
+        params = [
+            {"name": "project_id", "type": "STRING", "value": project_id},
+            {"name": "model_id", "type": "STRING", "value": model_id},
+            {"name": "limit_date", "type": "DATE", "value": limit_date}
+        ]
+
+        # Execute parameterized query, raise error if no results are found
         try:  
-            query_result = self.query(search_model_sql)
+            query_result = self.parameterized_query(search_model_sql, params)
             
         except ValueError:
             raise SQLNotFoundError(("No results found for search_model_sql query. " 
