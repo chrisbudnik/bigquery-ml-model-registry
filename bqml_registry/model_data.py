@@ -42,7 +42,7 @@ class ModelData():
         return training_runs
     
     @property
-    def is_tunning(self):
+    def tuning(self):
         """Provide information if hyperparameter-tunning was included."""
         return int(self.metadata.get("trainingOptions", {}).get("numTrials", 0)) > 0
     
@@ -52,6 +52,7 @@ class ModelData():
         target = self.metadata["trainingOptions"]["inputLabelColumns"]
         if len(target) > 1:
             raise NotImplementedError("Multiple target variables are not supported.")
+        
         return target[0]
     
     def fetch_feature_names(self):
@@ -72,11 +73,23 @@ class ModelData():
         return  df.to_dict('records')
     
     @staticmethod
-    def _format_hyperparam_value(value: Any) -> Union[str, Any]:
-        """Format hyperparameter value to string from a list of strings or string."""
+    def _assign_string_type(value: Any) -> str:
+        """Assign type to the value."""
+
+        if isinstance(value, str):
+            return value
+        
         if isinstance(value, list):
             return "-".join(value)
-        return value
+        return None
+    
+    @staticmethod
+    def _assign_float_type(value: Any) -> float:
+        """Assign type to the value."""
+
+        if not isinstance(value, str | list | None):
+            return float(value)
+        return None
     
     def fetch_hyperparameters(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns hyperparameters."""
@@ -93,9 +106,8 @@ class ModelData():
             hyperparam_dict["name"] = key
 
             # Determine the type of the value for proper BigQuery export
-            is_value_string_or_list = isinstance(value, list | str)
-            hyperparam_dict["value_string"] = self._format_hyperparam_value(value) if is_value_string_or_list else None
-            hyperparam_dict["value_float"] = float(value) if not is_value_string_or_list else None
+            hyperparam_dict["value_string"] = self._assign_string_type(value)
+            hyperparam_dict["value_float"] = self._assign_float_type(value)
         
             hyperparams_data.append(hyperparam_dict)
 
@@ -104,7 +116,7 @@ class ModelData():
     def fetch_eval_metrics(self) -> List[Dict[str, float]]:
         """Fetches and returns evaluation metrics."""
 
-        if self.is_tunning:
+        if self.tuning:
             raise ValueError("""BigQuery does not provide evaluation metrics for hyperparameter-tunning models. 
                              They can be accessed with fetch_trial_info() method""")
 
@@ -112,22 +124,22 @@ class ModelData():
             raise NotImplementedError("Evaluation metrics are only supported for REGRESSOR and CLASSIFIER models")
         
         if self.model_type in ModelNames.REGRESSION_MODELS:
-            eval_metrics = self.metadata["evaluationMetrics"]['regressionMetrics']
+            eval_metrics: dict = self.metadata["evaluationMetrics"]['regressionMetrics']
         else:
-            eval_metrics = self.metadata["evaluationMetrics"]['classificationMetrics']
+            eval_metrics: dict = self.metadata["evaluationMetrics"]['classificationMetrics']
             
         return [{"name": key, "value": float(value)} for key, value in eval_metrics.items()]
 
     def fetch_training_info(self) -> List[Dict[str, float]]:
         """Fetches and returns training info."""
         
-        training_info = self.metadata["results"][0]
+        training_info: dict = self.metadata["results"][0]
         return [{"name": key, "value": float(value)} for key, value in training_info.items()]
     
     def fetch_trial_info(self) -> List[Dict[str, float]]:
         """Fetches and returns trial info based on ML.TRIAL_INFO() function."""
-        
-        if not self.is_tunning:
+
+        if not self.tuning:
             raise ValueError(f"Fetching trial info is not supported for non hyperparameter-tunning models.")
 
         df: pd.DataFrame = self.connector.execute_trial_info_sql(self.fully_model_id)
@@ -139,8 +151,8 @@ class ModelData():
                             var_name='name', value_name='value')
         
         # Determine the type of the value for proper BigQuery export
-        df_melted["value_string"] = df_melted['value'] if isinstance(df_melted["value"], str) else None
-        df_melted['value_float'] = df_melted['value'].apply(lambda x: float(x) if x is not None and not isinstance(x, str) else None)
+        df_melted["value_string"] = df_melted['value'].apply(lambda x: self._assign_string_type(x))
+        df_melted['value_float'] = df_melted['value'].apply(lambda x: self._assign_float_type(x))
 
         # Drop unnecessary 'value' column, save results into a dict
         df_melted.drop('value', axis=1, inplace=True)
@@ -149,7 +161,7 @@ class ModelData():
     def generate_model_sql(self, region: str = "us") -> str:
         """Retrive model create statement sql from information schema."""
         
-        model_info: pd.DataFrame = self.connector.execute_search_model_sql(self.project_id, self.model_id, region)
+        model_info: pd.DataFrame = self.connector.execute_search_model_sql(self.project_id, self.model_id, self.created, region)
 
         # Concatenate all rows into a single string
         return "".join(model_info["query"].to_list())
