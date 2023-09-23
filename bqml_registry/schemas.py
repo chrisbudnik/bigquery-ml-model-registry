@@ -10,7 +10,7 @@ class RegistrySchema():
             bigquery.SchemaField("created", "DATE"),
             bigquery.SchemaField("type", "STRING"),
             bigquery.SchemaField("target", "STRING"),
-            bigquery.SchemaField("is_tunning", "STRING"),
+            bigquery.SchemaField("tuning", "STRING"),
     ]
     feature_fields = [
             bigquery.SchemaField("features", "REPEATED")
