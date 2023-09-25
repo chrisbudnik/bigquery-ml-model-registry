@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     # Create model registry table
     registry = ModelRegistry(project_id, dataset_id, table_id)
-    registry.init_table()
+    registry.create_registry()
     
     # Add a model to the registry
     model_id = "model_forest_03"
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     pprint(model.metadata)
 
     # Fetch hyperparameters
-    hyperparams = model.fetch_hyperparams()
+    hyperparams = model.fetch_hyperparameters()
     pprint(hyperparams)
 
     # Fetch feature importance - only tree models
