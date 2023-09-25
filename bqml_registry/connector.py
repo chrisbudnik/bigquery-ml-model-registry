@@ -18,8 +18,9 @@ class BigQueryConnector(Config):
         """Query BigQuery tables with sql and save results into DataFrame."""
         return self.client.query(sql).to_dataframe()
 
-    def parameterized_query(self, sql: str, params: list[str: dict[str, str]]) -> pd.DataFrame:
-        """Query BigQuery tables with sql and save results into DataFrame.
+    def parameterized_query(self, sql: str, params: list[dict[str, str]]) -> pd.DataFrame:
+        """
+        Query BigQuery tables with sql and save results into DataFrame.
         Params should be a list of dicts, where each dict contains the following keys:
         name: name of the parameter, value: value of the parameter, type: type of the parameter
         """
