@@ -99,7 +99,7 @@ class ModelData():
 
         hyperparams_data = []
         for key, value in hyperparams.items():
-            # Exclude target label from hyperparams
+            # Exclude target label(s) from hyperparams
             if key == 'inputLabelColumns':
                 continue
 
@@ -137,7 +137,10 @@ class ModelData():
     def fetch_training_info(self) -> List[Dict[str, float]]:
         """Fetches and returns training info."""
         
-        training_info: dict = self.metadata["results"][0]
+        training_info: dict = self.metadata.get("results", [])[0]
+        if not training_info:
+            raise ValueError("Training info is not available for this model.")
+        
         return [{"name": key, "value": float(value)} for key, value in training_info.items()]
     
     def fetch_trial_info(self) -> List[Dict[str, Union[str, float]]]:
