@@ -30,7 +30,8 @@ class ModelData():
         self.model = model
         self.created = self.model.created.strftime('%Y-%m-%d')
         self.model_type = model.model_type
-
+        
+        # Check if model type is supported
         if self.model_type not in ModelNames.SUPPORTED_MODELS:
             raise NotImplementedError(f"Model type: {self.model_type} is not supported.")
 
@@ -123,12 +124,15 @@ class ModelData():
         if self.model_type not in ModelNames.REGRESSION_MODELS | ModelNames.CLASSIFICATION_MODELS:
             raise NotImplementedError("Evaluation metrics are only supported for REGRESSOR and CLASSIFIER models")
         
+        # Fetch evaluation metrics, hypertunning models have them empty
+        eval_metrics: dict = self.metadata.get("evaluationMetrics", {})  
+
         if self.model_type in ModelNames.REGRESSION_MODELS:
-            eval_metrics: dict = self.metadata["evaluationMetrics"]['regressionMetrics']
+            model_metrics: dict = eval_metrics.get('regressionMetrics', {})
         else:
-            eval_metrics: dict = self.metadata["evaluationMetrics"]['classificationMetrics']
+            model_metrics: dict = eval_metrics.get('classificationMetrics', {})
             
-        return [{"name": key, "value": float(value)} for key, value in eval_metrics.items()]
+        return [{"name": key, "value": float(value)} for key, value in model_metrics.items()]
 
     def fetch_training_info(self) -> List[Dict[str, float]]:
         """Fetches and returns training info."""
@@ -136,7 +140,7 @@ class ModelData():
         training_info: dict = self.metadata["results"][0]
         return [{"name": key, "value": float(value)} for key, value in training_info.items()]
     
-    def fetch_trial_info(self) -> List[Dict[str, float]]:
+    def fetch_trial_info(self) -> List[Dict[str, Union[str, float]]]:
         """Fetches and returns trial info based on ML.TRIAL_INFO() function."""
 
         if not self.tuning:
