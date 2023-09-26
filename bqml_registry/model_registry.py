@@ -84,3 +84,15 @@ class ModelRegistry():
         
         except NotFound:
             return False
+        
+    def _process_eval_metrics(self, eval_metrics: Dict[str, float]) -> Dict[str, float]:
+        """Process evaluation metrics."""
+        pass
+
+    def _process_trial_info(self, trial_info: Dict[str, float]) -> Dict[str, float]:
+        """Process trial info."""
+        pass
+
+    def _process_feature_importance(self, feature_importance: Dict[str, float]) -> Dict[str, float]:
+        """Process feature importance."""
+        pass
