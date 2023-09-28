@@ -43,7 +43,7 @@ class ModelRegistry():
             "created": model.created,
             "type": model.model_type,
             "target": model.fetch_target(),
-            "is_tunning": model.tuning,
+            "tuning": model.tuning,
         }
         # if features.importance is in the schema, add feature importance to the dict
         if any(field.name == 'features.importance' for field in schema):
