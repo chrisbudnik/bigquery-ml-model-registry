@@ -45,6 +45,14 @@ class ModelRegistry():
             "target": model.fetch_target(),
             "tuning": model.tuning,
         }
+        
+        # Add additional model metadata to the dict
+        metadata_dict = {
+            "eval": model.fetch_eval_metrics(),
+            "trainint_info": model.fetch_training_info(),
+            "hyperparams": model.fetch_hyperparameters()
+        }
+
         # if features.importance is in the schema, add feature importance to the dict
         if any(field.name == 'features.importance' for field in schema):
             # Raise an error if model is not tree-based (no support for feature importance)
@@ -55,12 +63,7 @@ class ModelRegistry():
         else:
             model_insert_dict["features"] = model.fetch_feature_names()
 
-        # Add additional model metadata to the dict
-        metadata_dict = {
-            "eval": model.fetch_eval_metrics(),
-            "trainint_info": model.fetch_training_info(),
-            "hyperparams": model.fetch_hyperparameters()
-        }
+
         model_insert_dict = model_insert_dict | metadata_dict
 
         # Add tunning info if it exists
