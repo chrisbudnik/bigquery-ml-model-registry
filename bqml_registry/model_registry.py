@@ -56,6 +56,8 @@ class ModelRegistry():
 
     def fetch_schema(self) -> List[bigquery.SchemaField]:
         """Fetch model registry schema."""
+        if not self._check_if_table_exists():
+            raise NameError(f"Table: {self.full_table_id} does not exist.")
 
         table = self.connector.client.get_table(self.full_table_id)
         return table.schema
