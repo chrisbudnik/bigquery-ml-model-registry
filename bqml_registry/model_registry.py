@@ -97,14 +97,25 @@ class ModelRegistry():
         # Cech if model is tree-based
         check_if_tree_model = model.model_type in ModelNames.TREE_MODELS
 
-        # Logic to determine if feature importance can be calculated, else return feature names
+        # Logic to determine if feature importance can be calculated
         if check_if_importance_column and check_if_tree_model:
             return model.fetch_feature_importance()
         
+        # if model is not tree-based, but feature importance columns exist
+        if check_if_importance_column:
+            return self._process_feature_names(model)
+        
         # this is a temporary solution, can cause problems with schema
         return model.fetch_feature_names()
+        
     
     def _process_feature_names(self, model: ModelData) -> List[Dict[str, str]]:
         """Process feature names to fit BigQuery schema."""
-        p
+        
+        # Create dummy feature importance dict with None values that will convert into null values in BigQuery
+        dummy_feature_importance = {"importance_weight": None, "importance_gain": None, "importance_cover": None}
+
+        # Create a list of dicts with feature names and dummy feature importance
+        return [item | dummy_feature_importance for item in model.fetch_feature_names()]
+        
         
