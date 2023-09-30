@@ -48,6 +48,7 @@ class ModelRegistry():
 
         # Add additional model metadata to the dict
         metadata_dict = {
+            "features": self._process_feature_importance(model, schema, model.model_type),
             "eval": model.fetch_eval_metrics(),
             "trainint_info": model.fetch_training_info(),
             "hyperparams": model.fetch_hyperparameters()
