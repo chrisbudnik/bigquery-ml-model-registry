@@ -75,9 +75,17 @@ class ModelRegistry():
         
         except NotFound: return False
         
-    def _process_eval_metrics(self, eval_metrics: Dict[str, float]) -> Dict[str, float]:
+    def _process_eval_metrics(self, model: ModelData) -> Dict[str, float]:
         """Process evaluation metrics to fit BigQuery schema."""
-        pass
+
+        # Logic to determine if eval metrics can be calculated
+        if not model.tuning and model.model_type in ModelNames.SUPPORTED_MODELS:
+            return model.fetch_eval_metrics()
+        
+        # Return dummy eval metrics dict with None values for tunning models
+        return [{"name": None, "value": None}]
+
+
 
     def _process_trial_info(self, model: ModelData, schema: List[bigquery.SchemaField]) -> Dict[str, float]:
         """Process trial info to fit BigQuery schema."""
