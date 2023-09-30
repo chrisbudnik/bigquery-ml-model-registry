@@ -48,8 +48,11 @@ class ModelRegistry():
             "eval": model.fetch_eval_metrics(),
             "trainint_info": model.fetch_training_info(),
             "hyperparams": model.fetch_hyperparameters(),
-            "trial_info": self._process_trial_info(model, schema)
         }
+
+        # Check schema for trial info columns
+        if any(field.name == 'tunning' for field in schema):
+            model_insert_dict["tunning"] = self._process_trial_info(model, schema)
 
         # Insert model metadata into the registry table
         self.connector.client.insert_rows_json(self.full_table_id, [model_insert_dict])
@@ -80,13 +83,12 @@ class ModelRegistry():
     def _process_trial_info(self, model: ModelData, schema: List[bigquery.SchemaField]) -> Dict[str, float]:
         """Process trial info to fit BigQuery schema."""
 
-        # Check schema for trial info columns
-        check_if_trial_column = (field.name == 'tunning' for field in schema)
-
-
-        if model.tuning and check_if_trial_column:
+        # Logic to determine if trial info can be calculated
+        if model.tuning:
             return model.fetch_trial_info()
-        pass
+        
+        # if schema includes hyperparameter tunning columns, but model is not tuned
+        return [{"name": None, "value_string": None, 'value_float': None}]
 
     def _process_feature_importance(self, model: ModelData, schema: List[bigquery.SchemaField]):
         """Process feature importance to fit BigQuery schema."""
