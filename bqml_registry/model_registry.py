@@ -44,23 +44,12 @@ class ModelRegistry():
             "type": model.model_type,
             "target": model.fetch_target(),
             "tuning": model.tuning,
-        }
-
-        # Add additional model metadata to the dict
-        metadata_dict = {
-            "features": self._process_feature_importance(model, schema, model.model_type),
+            "features": self._process_feature_importance(model, schema),
             "eval": model.fetch_eval_metrics(),
             "trainint_info": model.fetch_training_info(),
-            "hyperparams": model.fetch_hyperparameters()
+            "hyperparams": model.fetch_hyperparameters(),
+            "trial_info": self._process_trial_info(model, schema)
         }
-
-
-
-        model_insert_dict = model_insert_dict | metadata_dict
-
-        # Add tunning info if it exists
-        if any(field.name == 'tunning' for field in schema):
-            model_insert_dict["tunning"] = model.fetch_trial_info()
 
         # Insert model metadata into the registry table
         self.connector.client.insert_rows_json(self.full_table_id, [model_insert_dict])
@@ -85,22 +74,30 @@ class ModelRegistry():
         """Process evaluation metrics."""
         pass
 
-    def _process_trial_info(self, trial_info: Dict[str, float]) -> Dict[str, float]:
+    def _process_trial_info(self, model: ModelData, schema: List[bigquery.SchemaField]) -> Dict[str, float]:
         """Process trial info."""
+
+        # Check schema for trial info columns
+        check_if_trial_column = (field.name == 'tunning' for field in schema)
+
+
+        if model.tuning and check_if_trial_column:
+            return model.fetch_trial_info()
         pass
 
-    def _process_feature_importance(self, model: ModelData, schema: List[bigquery.SchemaField], model_type: str):
+    def _process_feature_importance(self, model: ModelData, schema: List[bigquery.SchemaField]):
         """Process feature importance."""
 
         # Check schema for feature importance columns
         check_if_importance_column = any(field.name == 'features.importance' for field in schema)
 
         # Cech if model is tree-based
-        check_if_tree_model = model_type in ModelNames.TREE_MODELS
+        check_if_tree_model = model.model_type in ModelNames.TREE_MODELS
 
         # Logic to determine if feature importance can be calculated, else return feature names
         if check_if_importance_column and check_if_tree_model:
             return model.fetch_feature_importance()
         
+        # this is a temporary solution, can cause problems with schema
         return model.fetch_feature_names()
         
