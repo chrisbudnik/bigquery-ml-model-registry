@@ -56,6 +56,7 @@ class ModelRegistry():
 
     def fetch_schema(self) -> List[bigquery.SchemaField]:
         """Fetch model registry schema."""
+
         if not self._check_if_table_exists():
             raise NameError(f"Table: {self.full_table_id} does not exist.")
 
@@ -73,11 +74,11 @@ class ModelRegistry():
             return False
         
     def _process_eval_metrics(self, eval_metrics: Dict[str, float]) -> Dict[str, float]:
-        """Process evaluation metrics."""
+        """Process evaluation metrics to fit BigQuery schema."""
         pass
 
     def _process_trial_info(self, model: ModelData, schema: List[bigquery.SchemaField]) -> Dict[str, float]:
-        """Process trial info."""
+        """Process trial info to fit BigQuery schema."""
 
         # Check schema for trial info columns
         check_if_trial_column = (field.name == 'tunning' for field in schema)
@@ -88,7 +89,7 @@ class ModelRegistry():
         pass
 
     def _process_feature_importance(self, model: ModelData, schema: List[bigquery.SchemaField]):
-        """Process feature importance."""
+        """Process feature importance to fit BigQuery schema."""
 
         # Check schema for feature importance columns
         check_if_importance_column = any(field.name == 'features.importance' for field in schema)
@@ -102,4 +103,8 @@ class ModelRegistry():
         
         # this is a temporary solution, can cause problems with schema
         return model.fetch_feature_names()
+    
+    def _process_feature_names(self, model: ModelData) -> List[Dict[str, str]]:
+        """Process feature names to fit BigQuery schema."""
+        p
         
