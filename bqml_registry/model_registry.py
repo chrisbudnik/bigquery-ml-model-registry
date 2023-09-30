@@ -50,9 +50,9 @@ class ModelRegistry():
             "hyperparams": model.fetch_hyperparameters(),
         }
 
-        # Check schema for tunning trials info columns
-        if any(field.name == 'tunning' for field in schema):
-            model_insert_dict["tunning"] = self._process_trial_info(model, schema)
+        # Check schema for tuning trials info columns
+        if any(field.name == 'tuning' for field in schema):
+            model_insert_dict["tuning"] = self._process_trial_info(model, schema)
 
         # Insert model metadata into the registry table
         self.connector.client.insert_rows_json(self.full_table_id, [model_insert_dict])
@@ -82,10 +82,11 @@ class ModelRegistry():
         if not model.tuning and model.model_type in ModelNames.SUPPORTED_MODELS:
             return model.fetch_eval_metrics()
         
-        # Return dummy eval metrics dict with None values for tunning models
+        if model.model_type not in ModelNames.SUPPORTED_MODELS:
+            print(f"Warning: Fetching eval metrics is not currently supported for {model.model_type} model type.")
+
+        # Return dummy eval metrics dict with None values for tuning models
         return [{"name": None, "value": None}]
-
-
 
     def _process_trial_info(self, model: ModelData, schema: List[bigquery.SchemaField]) -> Dict[str, float]:
         """Process trial info to fit BigQuery schema."""
@@ -94,7 +95,7 @@ class ModelRegistry():
         if model.tuning:
             return model.fetch_trial_info()
         
-        # if schema includes hyperparameter tunning columns, but model is not tuned
+        # if schema includes hyperparameter tuning columns, but model is not tuned
         return [{"name": None, "value_string": None, 'value_float': None}]
 
     def _process_feature_importance(self, model: ModelData, schema: List[bigquery.SchemaField]):
