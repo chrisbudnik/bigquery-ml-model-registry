@@ -45,7 +45,7 @@ class ModelRegistry():
             "target": model.fetch_target(),
             "tuning": model.tuning,
         }
-        
+
         # Add additional model metadata to the dict
         metadata_dict = {
             "eval": model.fetch_eval_metrics(),
@@ -53,15 +53,6 @@ class ModelRegistry():
             "hyperparams": model.fetch_hyperparameters()
         }
 
-        # if features.importance is in the schema, add feature importance to the dict
-        if any(field.name == 'features.importance' for field in schema):
-            # Raise an error if model is not tree-based (no support for feature importance)
-            if model.model_type not in ModelNames.TREE_MODELS:
-                raise ValueError("Feature importance can be only calculated for tree-based models.")
-            
-            model_insert_dict["features"] = model.fetch_feature_importance()
-        else:
-            model_insert_dict["features"] = model.fetch_feature_names()
 
 
         model_insert_dict = model_insert_dict | metadata_dict
@@ -73,8 +64,9 @@ class ModelRegistry():
         # Insert model metadata into the registry table
         self.connector.client.insert_rows_json(self.full_table_id, [model_insert_dict])
 
-    def fetch_schema(self):
+    def fetch_schema(self) -> List[bigquery.SchemaField]:
         """Fetch model registry schema."""
+
         table = self.connector.client.get_table(self.full_table_id)
         return table.schema
     
@@ -96,6 +88,18 @@ class ModelRegistry():
         """Process trial info."""
         pass
 
-    def _process_feature_importance(self, feature_importance: Dict[str, float]) -> Dict[str, float]:
+    def _process_feature_importance(self, model: ModelData, schema: List[bigquery.SchemaField], model_type: str):
         """Process feature importance."""
-        pass
+
+        # Check schema for feature importance columns
+        check_if_importance_column = any(field.name == 'features.importance' for field in schema)
+
+        # Cech if model is tree-based
+        check_if_tree_model = model_type in ModelNames.TREE_MODELS
+
+        # Logic to determine if feature importance can be calculated, else return feature names
+        if check_if_importance_column and check_if_tree_model:
+            return model.fetch_feature_importance()
+        
+        return model.fetch_feature_names()
+        
