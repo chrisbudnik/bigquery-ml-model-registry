@@ -50,7 +50,7 @@ class ModelRegistry():
             "hyperparams": model.fetch_hyperparameters(),
         }
 
-        # Check schema for trial info columns
+        # Check schema for tunning trials info columns
         if any(field.name == 'tunning' for field in schema):
             model_insert_dict["tunning"] = self._process_trial_info(model, schema)
 
@@ -73,8 +73,7 @@ class ModelRegistry():
             self.connector.client.get_table(self.full_table_id)
             return True
         
-        except NotFound:
-            return False
+        except NotFound: return False
         
     def _process_eval_metrics(self, eval_metrics: Dict[str, float]) -> Dict[str, float]:
         """Process evaluation metrics to fit BigQuery schema."""
