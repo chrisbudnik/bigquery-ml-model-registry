@@ -1,9 +1,7 @@
 from typing import Union
 import datetime
 import pandas as pd
-from google.cloud import bigquery
 from google.cloud.bigquery import ScalarQueryParameter, QueryJobConfig
-
 from .config import Config
 from .permissions import RequiredPermissions
 from .exceptions import BigQueryPermissionError, SQLNotFoundError
