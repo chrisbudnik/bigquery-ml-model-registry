@@ -30,7 +30,7 @@ The `bigquery-ml-model-registry` project leverages Google's BigQuery API in Pyth
 - `example.py` - An example script that demonstrates how to use the various functionalities provided by the BQML Model Registry module.
 - `sql-for-registry.md` - A markdown file that provides example SQL queries for handling special use-cases like pivoting hyperparameters or managing array records in the registry table.
 
-# :gear: Prerequisites
+## :gear: Prerequisites
 
 Before diving into the functionalities, make sure you have:
 
