@@ -1,10 +1,10 @@
-# BigQuery ML Model Registry 
+# :bar_chart: BigQuery ML Model Registry 
 
-## Description
+## :pencil2: Description
 
 The `bigquery-ml-model-registry` project leverages Google's BigQuery API in Python to create a robust and versatile machine learning model registry. Our model registry aims to make model management straightforward and systematic by including comprehensive information for each registered model.
 
-## Features
+## :star2: Features
 
 ### `ModelData` Class
 
@@ -24,13 +24,13 @@ The `bigquery-ml-model-registry` project leverages Google's BigQuery API in Pyth
     2. **Include Feature Importance**: Tailored for scenarios where tree-based models are used, storing only feature importance data.
     3. **Focus on Tuning**: Ideal for hyperparameter tuning scenarios, includes general stats and tuning-specific information like trial performance.
 
-## Repo Structure
+## :file_folder: Repo Structure
 
 - `bqml_registry/` - This is the main code base for the BQML Model Registry module. It contains all the necessary classes and functionalities.
 - `example.py` - An example script that demonstrates how to use the various functionalities provided by the BQML Model Registry module.
 - `sql-for-registry.md` - A markdown file that provides example SQL queries for handling special use-cases like pivoting hyperparameters or managing array records in the registry table.
 
-# Prerequisites
+# :gear: Prerequisites
 
 Before diving into the functionalities, make sure you have:
 
@@ -38,7 +38,7 @@ Before diving into the functionalities, make sure you have:
 - An active Google Cloud project with billing enabled
 - A BigQuery dataset with saved BigQuery ML model
 
-## Setup
+## :hammer_and_wrench: Setup
 
 First, import the necessary modules.
 
@@ -118,78 +118,5 @@ Here's how to register a model:
 # Add model to the registry table
 registry.add_model(model)
 ```
-
-By following these steps, you can effectively manage your BigQuery ML models using the `bqml_registry` Python module. Feel free to explore these functionalities to improve your machine learning workflow.
-
-
-
-
-# :books: BigQuery ML Model Registry 
-
-## :page_facing_up: Description
-
-The `bigquery-ml-model-registry` project leverages Google's BigQuery API in Python to create a robust and versatile machine learning model registry. Our model registry aims to make model management straightforward and systematic by including comprehensive information for each registered model.
-
-## :star2: Features
-
-### `ModelData` Class
-
-- **Fetching Model Metadata**: Retrieves all essential metadata associated with a BigQuery ML model, such as hyperparameters, feature names, and their importances.
-- **Evaluation Metrics**: Fetches various metrics like accuracy, precision, recall, etc., which help in the evaluation and comparison of different models.
-
-### `ModelRegistry` Class
-
-- **Registry Creation**: Provides methods for creating a new registry table within BigQuery to store model information.
-- **Automated Model Addition**: Includes functionalities to automatically add new models to the registry table with all their associated metadata and evaluation metrics.
-
-### `RegistryTemplate` Class
-
-- **Flexible Schema Definition**: Allows users to define the schema of the registry table based on their specific needs.
-- **Three Recommended Options for Schema**:
-    1. **Include All Columns**: A robust option that includes all possible columns for maximum information.
-    2. **Include Feature Importance**: Tailored for scenarios where tree-based models are used, storing only feature importance data.
-    3. **Focus on Tuning**: Ideal for hyperparameter tuning scenarios, includes general stats and tuning-specific information like trial performance.
-
-## :file_folder: Repo Structure
-
-- `bqml_registry/` - This is the main code base for the BQML Model Registry module. It contains all the necessary classes and functionalities.
-- `example.py` - An example script that demonstrates how to use the various functionalities provided by the BQML Model Registry module.
-- `sql-for-registry.md` - A markdown file that provides example SQL queries for handling special use-cases like pivoting hyperparameters or managing array records in the registry table.
-
-# :gear: Prerequisites
-
-Before diving into the functionalities, make sure you have:
-
-- Google Cloud SDK and BigQuery Python SDK installed
-- An active Google Cloud project with billing enabled
-- A BigQuery dataset with saved BigQuery ML model
-
-## :hammer_and_wrench: Setup
-
-< All your Setup Details >
-
-## :bar_chart: ModelData Instance Creation
-
-< All your Details about ModelData Instance Creation >
-
-## :arrow_down: Fetching Feature Importance
-
-< All your Details about Fetching Feature Importance >
-
-## :twisted_rightwards_arrows: Fetching Hyperparameters
-
-< All your Details about Fetching Hyperparameters >
-
-## :pencil2: Generating Model SQL 
-
-< All your Details about Generating Model SQL >
-
-## :clipboard: Initializing Model Registry Table
-
-< All your Details about Initializing Model Registry Table >
-
-## :heavy_check_mark: Registering a Model to the Model Registry
-
-< All your Details about Registering a Model to the Model Registry >
 
 By following these steps, you can effectively manage your BigQuery ML models using the `bqml_registry` Python module. Feel free to explore these functionalities to improve your machine learning workflow.
