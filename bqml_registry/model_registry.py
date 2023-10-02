@@ -117,8 +117,7 @@ class ModelRegistry():
         
         # this is a temporary solution, can cause problems with schema
         return model.fetch_feature_names()
-        
-    
+ 
     def _process_feature_names(self, model: ModelData) -> List[Dict[str, str]]:
         """Process feature names to fit BigQuery schema."""
         
