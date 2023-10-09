@@ -38,6 +38,8 @@ Before diving into the functionalities, make sure you have:
 - An active Google Cloud project with billing enabled
 - A BigQuery dataset with saved BigQuery ML model
 
+You can check detailed set-up guide here: `set-up-guide.md`
+
 ## :hammer_and_wrench: Setup
 
 First, import the necessary modules.
