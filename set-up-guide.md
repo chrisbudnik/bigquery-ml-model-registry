@@ -5,13 +5,13 @@ This guide will walk you through the essential steps to set up and run the `bqml
 ## **Prerequisites**
 Before starting with the module setup, ensure you meet the following requirements:
 
-1. **Google Cloud Project with BigQuery**: Ensure that you have a Google Cloud Project with BigQuery enabled. If you are new to BigQuery, you can refer to the official documentation on [how to set up BigQuery]().
+1. **Google Cloud Project with BigQuery**: Ensure that you have a Google Cloud Project with BigQuery enabled. If you are new to BigQuery, you can refer to the official documentation on [how to set up BigQuery](https://cloud.google.com/bigquery/docs/quickstarts).
 
 2. **Billing Enabled**: BigQuery ML is a paid feature. Ensure that your Google Cloud project has billing enabled. You can enable billing [here](https://cloud.google.com/billing/docs/how-to/modify-project).
 
 3. **Service Account Setup**:
    - Create a service account within your Google Cloud Project.
-   - Grant the required permissions to this service account. For detailed instructions, refer to our [permissions class guide](). However, if you want a quick setup, grant the following predefined roles to your service account:
+   - Grant the required permissions to this service account. For detailed instructions, refer to the [permissions class](bqml_registry/permissions.py). However, if you want a quick setup, grant the following predefined roles to your service account:
      - BigQuery Data Editor
      - BigQuery Job User
      - BigQuery Read Session User
@@ -23,7 +23,7 @@ Once you have completed the prerequisites, follow the steps below to run the `bq
 
 1. **Clone the Repository**:
    ```bash
-   git clone [your-github-repo-link]
+   git clone https://github.com/chrisbudnik/bigquery-ml-model-registry
    ```
 
 2. **Environment Setup**:
