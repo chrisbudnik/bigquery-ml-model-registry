@@ -45,6 +45,17 @@ Once you have completed the prerequisites, follow the steps below to run the `bq
      $env:SERVICE_ACCOUNT_CREDENTIALS="C:\path\to\service-account-file.json"
      ```
 
+## Testing Permissions with `BigQueryConnector`
+
+Once you have set up your environment and ensured all prerequisites are in place, you can easily verify if your service account has the necessary permissions. To do this, simply initialize the `BigQueryConnector` from the `bqml_registry` module. 
+
+```python
+from bqml_registry import BigQueryConnector
+connector = BigQueryConnector()
+```
+
+Upon initialization, the `BigQueryConnector` automatically checks for the required permissions. If there are any missing permissions or issues, it will notify you, ensuring that all criteria are met before you proceed with further operations.
+
 ---
 
 If you encounter any issues or have feedback, please raise them on our GitHub issues page. Your feedback will help us make improvements!
